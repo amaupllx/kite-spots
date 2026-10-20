@@ -3,7 +3,7 @@ import type { Spot } from '../types'
 export interface WaterTemp {
   value: number
   source: 'alplakes' | 'estimation'
-  note?: string
+  note?: 'today' | 'estimate'
 }
 
 // Températures de surface moyennes approximatives par mois (jan → déc), utilisées en secours.
@@ -51,13 +51,13 @@ export function getWaterTemp(spot: Spot, date: string): Promise<WaterTemp> {
       } catch {
         try {
           const v = await alplakes(spot, new Date())
-          return { value: v, source: 'alplakes', note: "valeur d'aujourd'hui (simulation non dispo pour ce jour)" }
+          return { value: v, source: 'alplakes', note: 'today' }
         } catch {
           /* on passe à l'estimation */
         }
       }
     }
-    return { value: CLIMATE[spot.waterClimate][day.getMonth()], source: 'estimation', note: 'moyenne saisonnière' }
+    return { value: CLIMATE[spot.waterClimate][day.getMonth()], source: 'estimation', note: 'estimate' }
   })()
   cache.set(key, p)
   return p

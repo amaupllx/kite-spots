@@ -1,5 +1,5 @@
-import type { Board, DayForecast, DayRating, HourForecast, HourRating, KitePick, Level, Profile, Spot } from '../types'
-import { angleToRange, dirLabel } from './geo'
+import type { Board, DayForecast, DayRating, HourForecast, HourRating, KitePick, Level, Profile, Spot, Warning } from '../types'
+import { angleToRange } from './geo'
 
 // Coefficient de la règle empirique : taille (m²) ≈ poids (kg) × k / vent (nœuds).
 const BOARD_K: Record<Board, number> = { twintip: 2.4, surf: 2.6, foil: 1.5 }
@@ -7,14 +7,8 @@ const MIN_WIND: Record<Board, number> = { twintip: 11, surf: 12, foil: 7 }
 const MAX_WIND: Record<Level, number> = { debutant: 22, intermediaire: 30, avance: 40 }
 const LEVEL_RANK: Record<Level, number> = { debutant: 0, intermediaire: 1, avance: 2 }
 
-export const LEVEL_LABEL: Record<Level, string> = {
-  debutant: 'Débutant',
-  intermediaire: 'Intermédiaire',
-  avance: 'Avancé',
-}
-export const BOARD_LABEL: Record<Board, string> = { twintip: 'Twintip', surf: 'Surf / directionnelle', foil: 'Foil' }
-
 const STORM_CODES = new Set([95, 96, 99])
+const MIN_HOUR_SCORE = 2
 
 /** Vent « effectif » pour le choix de l'aile : la moyenne, tirée un peu vers les rafales. */
 function effectiveWind(h: Pick<HourForecast, 'wind' | 'gust'>) {
@@ -37,7 +31,7 @@ export function pickKite(profile: Profile, h: Pick<HourForecast, 'wind' | 'gust'
 }
 
 export function rateHour(spot: Spot, profile: Profile, h: HourForecast): HourRating {
-  const warnings: string[] = []
+  const warnings: Warning[] = []
   const kite = pickKite(profile, h)
 
   const dist = Math.min(...spot.directions.map((r) => angleToRange(h.dir, r)))
@@ -48,15 +42,15 @@ export function rateHour(spot: Spot, profile: Profile, h: HourForecast): HourRat
   if (kite.fit === 'aucune') rideable = false
   if (dirOk === 'mauvais') {
     rideable = false
-    warnings.push(`Direction ${dirLabel(h.dir)} défavorable`)
+    warnings.push('dir')
   }
   if (h.gust > MAX_WIND[profile.level] + 5 || h.wind > MAX_WIND[profile.level]) {
     rideable = false
-    warnings.push('Trop fort pour ton niveau')
+    warnings.push('tooStrong')
   }
   if (STORM_CODES.has(h.code)) {
     rideable = false
-    warnings.push('Risque d\'orage')
+    warnings.push('storm')
   }
 
   let score = 0
@@ -67,10 +61,10 @@ export function rateHour(spot: Spot, profile: Profile, h: HourForecast): HourRat
     else if (gf <= 1.4) score += 0.5
     else if (gf > 1.8) {
       score -= 2
-      warnings.push('Très rafaleux')
+      warnings.push('veryGusty')
     } else if (gf > 1.6) {
       score -= 1
-      warnings.push('Rafaleux')
+      warnings.push('gusty')
     }
     if (dirOk === 'limite') score *= 0.65
     if (h.rainProb >= 70) score -= 1
@@ -78,26 +72,28 @@ export function rateHour(spot: Spot, profile: Profile, h: HourForecast): HourRat
     if (h.temp < 5) score -= 0.5
     if (LEVEL_RANK[spot.level] > LEVEL_RANK[profile.level]) {
       score -= 1
-      warnings.push('Spot exigeant pour ton niveau')
+      warnings.push('hardSpot')
     }
   }
   return { hour: h, score: clamp(score, 0, 5), dirOk, kite, rideable, warnings }
 }
 
+const isGood = (r: HourRating) => r.rideable && r.score >= MIN_HOUR_SCORE
+
+/** Note journalière : meilleure suite d'heures navigables (somme des notes maximale). */
 export function rateDay(spot: Spot, profile: Profile, day: DayForecast): DayRating {
   const hours = day.hours.map((h) => rateHour(spot, profile, h))
 
-  // Meilleure fenêtre : suite d'heures navigables (note ≥ 2) dont la somme des notes est maximale.
   let best: { start: number; end: number; sum: number } | null = null
   let i = 0
   while (i < hours.length) {
-    if (!(hours[i].rideable && hours[i].score >= 2)) {
+    if (!isGood(hours[i])) {
       i++
       continue
     }
     let j = i
     let sum = 0
-    while (j < hours.length && hours[j].rideable && hours[j].score >= 2) sum += hours[j++].score
+    while (j < hours.length && isGood(hours[j])) sum += hours[j++].score
     if (!best || sum > best.sum) best = { start: i, end: j, sum }
     i = j
   }
@@ -105,33 +101,58 @@ export function rateDay(spot: Spot, profile: Profile, day: DayForecast): DayRati
   if (!best) {
     const maxWind = Math.max(0, ...day.hours.map((h) => h.wind))
     return {
+      date: day.date,
       score: 0,
       hours,
       window: null,
       kite: null,
-      summary: day.hours.length === 0 ? 'Pas de données' : maxWind < MIN_WIND[profile.board] ? `Pas assez de vent (max ${Math.round(maxWind)} nds)` : 'Conditions non praticables',
+      status: day.hours.length === 0 ? 'nodata' : maxWind < MIN_WIND[profile.board] ? 'nowind' : 'notrideable',
+      maxWind,
+      stats: null,
     }
   }
-
-  const win = hours.slice(best.start, best.end)
-  const len = win.length
-  const avg = best.sum / len
+  const len = best.end - best.start
   const lenFactor = len >= 3 ? 1 : len === 2 ? 0.85 : 0.65
+  return withWindow(day.date, hours, best.start, best.end, (best.sum / len) * lenFactor)
+}
+
+/**
+ * Meilleure session de `len` heures consécutives d'une journée (toutes navigables).
+ * Renvoie null si la journée n'en contient aucune.
+ */
+export function bestSession(spot: Spot, profile: Profile, day: DayForecast, len = 3): DayRating | null {
+  const hours = day.hours.map((h) => rateHour(spot, profile, h))
+  let best: { start: number; sum: number } | null = null
+  for (let i = 0; i + len <= hours.length; i++) {
+    const slice = hours.slice(i, i + len)
+    if (!slice.every(isGood)) continue
+    const sum = slice.reduce((a, r) => a + r.score, 0)
+    if (!best || sum > best.sum) best = { start: i, sum }
+  }
+  if (!best) return null
+  return withWindow(day.date, hours, best.start, best.start + len, best.sum / len)
+}
+
+function withWindow(date: string, hours: HourRating[], start: number, end: number, score: number): DayRating {
+  const win = hours.slice(start, end)
   const counts = new Map<number, number>()
   win.forEach((r) => r.kite.owned && counts.set(r.kite.owned, (counts.get(r.kite.owned) ?? 0) + 1))
   const ownedMain = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
-  const mid = win[Math.floor(len / 2)]
-  const kite: KitePick = { ...mid.kite, owned: ownedMain ?? mid.kite.owned }
-
-  const wMin = Math.round(Math.min(...win.map((r) => r.hour.wind)))
-  const wMax = Math.round(Math.max(...win.map((r) => r.hour.wind)))
-  const window = { start: win[0].hour.hour, end: win[len - 1].hour.hour + 1 }
+  const mid = win[Math.floor(win.length / 2)]
   return {
-    score: Math.round(avg * lenFactor * 10) / 10,
+    date,
+    score: Math.round(score * 10) / 10,
     hours,
-    window,
-    kite,
-    summary: `${window.start}h–${window.end}h · ${wMin === wMax ? wMin : `${wMin}–${wMax}`} nds ${dirLabel(mid.hour.dir)}`,
+    window: { start: win[0].hour.hour, end: win[win.length - 1].hour.hour + 1 },
+    kite: { ...mid.kite, owned: ownedMain ?? mid.kite.owned },
+    status: 'ok',
+    maxWind: Math.max(...hours.map((r) => r.hour.wind)),
+    stats: {
+      windMin: Math.min(...win.map((r) => r.hour.wind)),
+      windMax: Math.max(...win.map((r) => r.hour.wind)),
+      gustMax: Math.max(...win.map((r) => r.hour.gust)),
+      dir: mid.hour.dir,
+    },
   }
 }
 

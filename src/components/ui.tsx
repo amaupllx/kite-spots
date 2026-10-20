@@ -1,9 +1,11 @@
+import { useI18n } from '../i18n'
 import { dirLabel } from '../lib/geo'
 
 export function Stars({ score, size = 'md' }: { score: number; size?: 'sm' | 'md' }) {
+  const { t } = useI18n()
   const pct = (Math.max(0, Math.min(5, score)) / 5) * 100
   return (
-    <span className={`stars stars-${size}`} title={`${score.toFixed(1)} / 5`} aria-label={`Note ${score.toFixed(1)} sur 5`}>
+    <span className={`stars stars-${size}`} title={`${score.toFixed(1)} / 5`} aria-label={t('stars', { score: score.toFixed(1) })}>
       <span className="stars-bg">★★★★★</span>
       <span className="stars-fg" style={{ width: `${pct}%` }}>★★★★★</span>
     </span>
@@ -12,17 +14,20 @@ export function Stars({ score, size = 'md' }: { score: number; size?: 'sm' | 'md
 
 /** Flèche dans le sens où le vent souffle (direction météo + 180°). */
 export function WindArrow({ dir }: { dir: number }) {
+  const { t, dir: d } = useI18n()
+  const label = d(dirLabel(dir))
   return (
-    <span className="wind-arrow" title={`Vent de ${dirLabel(dir)} (${Math.round(dir)}°)`}>
+    <span className="wind-arrow" title={`${t('wind.from', { dir: label })} (${Math.round(dir)}°)`}>
       <svg viewBox="0 0 24 24" width="16" height="16" style={{ transform: `rotate(${dir + 180}deg)` }} aria-hidden>
         <path d="M12 3 L18 15 L12 12 L6 15 Z" fill="currentColor" />
       </svg>
-      <span>{dirLabel(dir)}</span>
+      <span>{label}</span>
     </span>
   )
 }
 
 export function HeartButton({ active, onClick }: { active: boolean; onClick: () => void }) {
+  const { t } = useI18n()
   return (
     <button
       type="button"
@@ -32,7 +37,7 @@ export function HeartButton({ active, onClick }: { active: boolean; onClick: () 
         onClick()
       }}
       aria-pressed={active}
-      title={active ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+      title={active ? t('fav.remove') : t('fav.add')}
     >
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
         <path

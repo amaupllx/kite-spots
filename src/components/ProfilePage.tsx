@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Board, Level, Place, Profile } from '../types'
-import { BOARD_LABEL, LEVEL_LABEL } from '../lib/rating'
+import { useI18n } from '../i18n'
 import { searchAddress } from '../services/geocode'
 import { SPOTS } from '../data/spots'
 import { HeartButton } from './ui'
@@ -13,9 +13,12 @@ interface Props {
   onDone: () => void
 }
 
+const LEVELS: Level[] = ['debutant', 'intermediaire', 'avance']
+const BOARDS: Board[] = ['twintip', 'surf', 'foil']
 const COMMON_SIZES = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17]
 
 export function ProfilePage({ profile, onChange, favorites, onToggleFavorite, onDone }: Props) {
+  const { t, lang } = useI18n()
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => onChange({ ...profile, [k]: v })
   const [query, setQuery] = useState(profile.address?.label ?? '')
   const [results, setResults] = useState<Place[] | null>(null)
@@ -29,9 +32,9 @@ export function ProfilePage({ profile, onChange, favorites, onToggleFavorite, on
     setSearching(true)
     setError(null)
     try {
-      const r = await searchAddress(query.trim())
+      const r = await searchAddress(query.trim(), lang)
       setResults(r)
-      if (r.length === 0) setError('Aucune adresse trouvée.')
+      if (r.length === 0) setError(t('profile.noResult'))
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -56,41 +59,41 @@ export function ProfilePage({ profile, onChange, favorites, onToggleFavorite, on
   return (
     <div className="profile">
       <section className="card form-card">
-        <h2>Mon profil</h2>
+        <h2>{t('profile.title')}</h2>
         <div className="grid2">
           <label className="field">
-            <span>Prénom</span>
-            <input value={profile.name} onChange={(e) => set('name', e.target.value)} placeholder="optionnel" />
+            <span>{t('profile.name')}</span>
+            <input value={profile.name} onChange={(e) => set('name', e.target.value)} placeholder={t('profile.optional')} />
           </label>
           <label className="field">
-            <span>Poids (kg)</span>
+            <span>{t('profile.weight')}</span>
             <input type="number" min={30} max={150} value={profile.weight} onChange={(e) => set('weight', Number(e.target.value) || 0)} />
           </label>
           <label className="field">
-            <span>Niveau</span>
+            <span>{t('profile.level')}</span>
             <select value={profile.level} onChange={(e) => set('level', e.target.value as Level)}>
-              {Object.entries(LEVEL_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              {LEVELS.map((k) => <option key={k} value={k}>{t(`level.${k}`)}</option>)}
             </select>
           </label>
           <label className="field">
-            <span>Planche</span>
+            <span>{t('profile.board')}</span>
             <select value={profile.board} onChange={(e) => set('board', e.target.value as Board)}>
-              {Object.entries(BOARD_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              {BOARDS.map((k) => <option key={k} value={k}>{t(`board.${k}`)}</option>)}
             </select>
           </label>
         </div>
 
         <label className="field">
-          <span>Temps de trajet max : <strong>{profile.maxTravelMin} min</strong></span>
+          <span>{t('profile.maxTravel')} : <strong>{profile.maxTravelMin} min</strong></span>
           <input type="range" min={15} max={300} step={15} value={profile.maxTravelMin} onChange={(e) => set('maxTravelMin', Number(e.target.value))} />
         </label>
       </section>
 
       <section className="card form-card">
-        <h2>Adresse de départ</h2>
+        <h2>{t('profile.address')}</h2>
         <form className="row" onSubmit={doSearch}>
-          <input className="grow" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rue, NPA, localité…" />
-          <button className="btn primary" disabled={searching}>{searching ? 'Recherche…' : 'Rechercher'}</button>
+          <input className="grow" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('profile.addressPh')} />
+          <button className="btn primary" disabled={searching}>{searching ? t('profile.searching') : t('profile.search')}</button>
         </form>
         {error && <p className="error small">{error}</p>}
         {results && results.length > 0 && (
@@ -117,8 +120,8 @@ export function ProfilePage({ profile, onChange, favorites, onToggleFavorite, on
       </section>
 
       <section className="card form-card">
-        <h2>Mes ailes</h2>
-        <p className="muted small">Seules ces tailles sont proposées dans les recommandations.</p>
+        <h2>{t('profile.kites')}</h2>
+        <p className="muted small">{t('profile.kitesHint')}</p>
         <div className="chips">
           {sizes.map((s) => (
             <button key={s} type="button" className={`chip ${profile.kites.includes(s) ? 'on' : ''}`} onClick={() => toggleKite(s)}>
@@ -127,14 +130,14 @@ export function ProfilePage({ profile, onChange, favorites, onToggleFavorite, on
           ))}
         </div>
         <form className="row" onSubmit={addKite}>
-          <input inputMode="decimal" value={newKite} onChange={(e) => setNewKite(e.target.value)} placeholder="Autre taille, ex. 10.5" />
-          <button className="btn">Ajouter</button>
+          <input inputMode="decimal" value={newKite} onChange={(e) => setNewKite(e.target.value)} placeholder={t('profile.kitePh')} />
+          <button className="btn">{t('profile.add')}</button>
         </form>
-        {profile.kites.length === 0 && <p className="error small">Ajoute au moins une aile.</p>}
+        {profile.kites.length === 0 && <p className="error small">{t('profile.needKite')}</p>}
       </section>
 
       <section className="card form-card">
-        <h2>Spots favoris</h2>
+        <h2>{t('profile.favorites')}</h2>
         <ul className="fav-list">
           {SPOTS.map((s) => (
             <li key={s.id}>
@@ -148,7 +151,7 @@ export function ProfilePage({ profile, onChange, favorites, onToggleFavorite, on
 
       <div className="profile-actions">
         <button className="btn primary big" onClick={onDone} disabled={!profile.address || profile.kites.length === 0}>
-          Voir les spots →
+          {t('profile.done')}
         </button>
       </div>
     </div>

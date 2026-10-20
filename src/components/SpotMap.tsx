@@ -2,6 +2,7 @@ import 'leaflet/dist/leaflet.css'
 import { useEffect } from 'react'
 import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet'
 import type { Place, Spot } from '../types'
+import { useI18n } from '../i18n'
 
 interface MapSpot {
   spot: Spot
@@ -30,6 +31,7 @@ function FitBounds({ points }: { points: [number, number][] }) {
 }
 
 export function SpotMap({ spots, home, radiusKm, onSelect }: { spots: MapSpot[]; home: Place | null; radiusKm: number; onSelect: (id: string) => void }) {
+  const { t } = useI18n()
   const points: [number, number][] = spots.map((m) => [m.spot.lat, m.spot.lon])
   if (home) points.push([home.lat, home.lon])
   return (
@@ -39,7 +41,7 @@ export function SpotMap({ spots, home, radiusKm, onSelect }: { spots: MapSpot[];
       {home && (
         <>
           <CircleMarker center={[home.lat, home.lon]} radius={7} pathOptions={{ color: '#1c64f2', fillColor: '#1c64f2', fillOpacity: 1 }}>
-            <Tooltip>Départ</Tooltip>
+            <Tooltip>{t('map.start')}</Tooltip>
           </CircleMarker>
           {radiusKm > 0 && <Circle center={[home.lat, home.lon]} radius={radiusKm * 1000} pathOptions={{ color: '#1c64f2', weight: 1, fillOpacity: 0.04 }} />}
         </>
@@ -53,7 +55,7 @@ export function SpotMap({ spots, home, radiusKm, onSelect }: { spots: MapSpot[];
           eventHandlers={{ click: () => onSelect(m.spot.id) }}
         >
           <Tooltip>
-            {m.spot.name} {m.rideable ? `· ${m.score.toFixed(1)}/5` : '· non praticable'}
+            {m.spot.name} {m.rideable ? `· ${m.score.toFixed(1)}/5` : `· ${t('map.notRideable')}`}
           </Tooltip>
         </CircleMarker>
       ))}

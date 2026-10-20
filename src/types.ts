@@ -35,6 +35,7 @@ export interface Spot {
   directions: DirRange[]
   level: Level
   notes: string
+  notesEn: string
   alplakes?: AlplakesRef
   /** Profil thermique du plan d'eau pour l'estimation de secours (°C moyens par mois). */
   waterClimate: 'plaine' | 'grand-lac' | 'altitude'
@@ -77,19 +78,24 @@ export interface KitePick {
   fit: KiteFit
 }
 
+export type Warning = 'dir' | 'tooStrong' | 'storm' | 'veryGusty' | 'gusty' | 'hardSpot'
+
 export interface HourRating {
   hour: HourForecast
   score: number // 0..5
   dirOk: 'bon' | 'limite' | 'mauvais'
   kite: KitePick
   rideable: boolean
-  warnings: string[]
+  warnings: Warning[]
 }
 
 export interface DayRating {
+  date: string
   score: number // 0..5
   hours: HourRating[]
   window: { start: number; end: number } | null // heures (end exclusive)
   kite: KitePick | null // aile dominante sur la meilleure fenêtre
-  summary: string
+  status: 'ok' | 'nodata' | 'nowind' | 'notrideable'
+  maxWind: number
+  stats: { windMin: number; windMax: number; gustMax: number; dir: number } | null
 }

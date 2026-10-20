@@ -8,6 +8,9 @@ quels spots de kite sont praticables pour chaque jour des 7 prochains jours.
 - **Profil utilisateur** (stocké dans le navigateur) : poids, niveau, type de planche, liste des
   ailes possédées, temps de trajet max, adresse de départ (géocodée).
 - **Sélection du jour** (aujourd'hui → J+6) et **rayon** optionnel autour de l'adresse.
+- **Mode Semaine / Période** : choisis toute la semaine ou un intervalle de jours, l'app
+  classe les **meilleures sessions de 3 h** (une par spot et par jour) tous spots confondus.
+- **Interface bilingue FR / EN** (bouton en haut à droite, choix mémorisé).
 - **Temps de trajet** en voiture vers chaque spot (OSRM), filtrés par le trajet max.
 - **Note /5** par spot et par heure : force du vent, direction vs orientation du spot,
   rafales, pluie, orage, niveau requis.
@@ -52,6 +55,7 @@ src/
   lib/geo.ts             distances, directions, formatage
   services/              appels API (météo, trajets, géocodage, eau)
   components/            UI (cartes de spot, tableau horaire, profil, carte)
+  i18n.tsx               traductions FR / EN
 ```
 
 Pour ajouter un spot, complète `src/data/spots.ts` : `directions` contient les plages de
