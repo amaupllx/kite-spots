@@ -1,10 +1,11 @@
 import type { DayRating } from '../types'
+import { wgAt, type WgForecast } from '../services/windguru'
 import { useI18n } from '../i18n'
 import { dirLabel } from '../lib/geo'
 import { scoreClass, windClass } from '../lib/classes'
 import { WindArrow } from './ui'
 
-export function HourlyTable({ rating }: { rating: DayRating }) {
+export function HourlyTable({ rating, wg }: { rating: DayRating; wg?: WgForecast | null }) {
   const { t, dir } = useI18n()
   if (rating.hours.length === 0) return <p className="muted">{t('table.none')}</p>
   return (
@@ -20,6 +21,7 @@ export function HourlyTable({ rating }: { rating: DayRating }) {
             <th>{t('table.air')}</th>
             <th>{t('table.rain')}</th>
             <th>{t('table.score')}</th>
+            {wg && <th title={wg.modelName}>{t('wg.col')}</th>}
           </tr>
         </thead>
         <tbody>
@@ -44,6 +46,7 @@ export function HourlyTable({ rating }: { rating: DayRating }) {
                   {r.hour.rainProb}%{r.hour.rain > 0.1 ? <span className="muted small"> {r.hour.rain.toFixed(1)}mm</span> : null}
                 </td>
                 <td><span className={`score-dot ${scoreClass(r.score)}`}>{r.rideable ? r.score.toFixed(1) : '✕'}</span></td>
+                {wg && <WgCell stars={wgAt(wg, rating.date, r.hour.hour)?.stars ?? null} />}
               </tr>
             )
           })}
@@ -55,5 +58,15 @@ export function HourlyTable({ rating }: { rating: DayRating }) {
         <span className="fit-soustoile kite-tag">{t('legend.under')}</span> {t('legend.suffix')}
       </p>
     </div>
+  )
+}
+
+function WgCell({ stars }: { stars: number | null }) {
+  if (stars === null) return <td className="muted">–</td>
+  return (
+    <td className="wg-cell" title={`${stars} / 3`}>
+      <span className="wg-on">{'★'.repeat(stars)}</span>
+      <span className="wg-off">{'★'.repeat(3 - stars)}</span>
+    </td>
   )
 }

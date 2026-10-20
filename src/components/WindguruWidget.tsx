@@ -1,27 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Spot } from '../types'
 import { useI18n } from '../i18n'
-
-const STORAGE_KEY = 'kite.windguruIds'
-
-function readOverrides(): Record<string, number> {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Record<string, number>
-  } catch {
-    return {}
-  }
-}
-
-function writeOverride(spotId: string, id: number | null) {
-  const all = readOverrides()
-  if (id === null) delete all[spotId]
-  else all[spotId] = id
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all))
-  } catch {
-    /* stockage indisponible */
-  }
-}
+import { readWindguruOverrides as readOverrides, writeWindguruOverride as writeOverride } from '../services/windguru'
 
 interface Props {
   spot: Spot

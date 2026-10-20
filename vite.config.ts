@@ -26,6 +26,13 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api\/alplakes/, ''),
       },
+      // API interne non documentée de Windguru (usage personnel, local) : elle attend un Referer windguru.cz.
+      '/api/windguru': {
+        target: 'https://www.windguru.net',
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/api\/windguru/, ''),
+        headers: { Referer: 'https://www.windguru.cz/' },
+      },
     },
   },
 })

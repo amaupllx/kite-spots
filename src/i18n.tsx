@@ -140,6 +140,8 @@ const fr = {
   'wg.idLabel': 'ID Windguru (le nombre dans windguru.cz/…)',
   'wg.save': 'Enregistrer',
   'wg.reset': 'Par défaut',
+  'wg.stars': 'Étoiles Windguru ({model}) : {avg} / 3 en moyenne sur {range}',
+  'wg.col': 'WG',
 }
 
 export type Key = keyof typeof fr
@@ -282,6 +284,8 @@ const en: Record<Key, string> = {
   'wg.idLabel': 'Windguru ID (the number in windguru.cz/…)',
   'wg.save': 'Save',
   'wg.reset': 'Default',
+  'wg.stars': 'Windguru stars ({model}): {avg} / 3 on average over {range}',
+  'wg.col': 'WG',
 }
 
 const DICTS: Record<Lang, Record<Key, string>> = { fr, en }

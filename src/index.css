@@ -273,3 +273,11 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 .wg p { margin: 0; }
 .wg-form input { flex: 1; }
 .wg-frame { min-height: 40px; overflow-x: auto; border-radius: 10px; }
+
+/* ---------- Étoiles Windguru ---------- */
+.wg-stars { display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border-radius: 6px; background: var(--surface-2); }
+.wg-label { font-size: 0.68rem; font-weight: 800; color: var(--muted); letter-spacing: 0.04em; }
+.stars-fg.wg-fg { color: #1c64f2; }
+.wg-cell { letter-spacing: 1px; }
+.wg-on { color: #1c64f2; }
+.wg-off { color: var(--border); }

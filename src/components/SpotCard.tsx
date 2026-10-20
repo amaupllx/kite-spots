@@ -7,7 +7,9 @@ import { HourlyTable } from './HourlyTable'
 import { TransitBlock } from './TransitBlock'
 import { WindguruWidget } from './WindguruWidget'
 import { scoreClass } from '../lib/classes'
-import { HeartButton, Stars } from './ui'
+import { HeartButton, Stars, WgStars } from './ui'
+import { useWindguru } from '../lib/useWindguru'
+import { wgAt } from '../services/windguru'
 
 interface Props {
   spot: Spot
@@ -31,6 +33,13 @@ export function SpotCard(p: Props) {
   const [water, setWater] = useState<WaterTemp | null>(null)
 
   const rideable = rating.window !== null
+  const wg = useWindguru(spot)
+
+  // Étoiles Windguru moyennes sur la session (ou sur la journée s'il n'y en a pas).
+  const wgHours = rating.hours.filter((r) => !rating.window || (r.hour.hour >= rating.window.start && r.hour.hour < rating.window.end))
+  const wgVals = wg.fc ? wgHours.map((r) => wgAt(wg.fc!, rating.date, r.hour.hour)).filter((v) => v !== null) : []
+  const wgAvg = wgVals.length ? wgVals.reduce((a, v) => a + v.stars, 0) / wgVals.length : null
+  const wgRange = rating.window ? `${rating.window.start}h–${rating.window.end}h` : t('fact.daylight').toLowerCase()
 
   useEffect(() => {
     if (!p.expanded) return
@@ -76,6 +85,9 @@ export function SpotCard(p: Props) {
           </div>
           <div className="spot-sub">
             <Stars score={rating.score} size="sm" />
+            {wgAvg !== null && (
+              <WgStars value={wgAvg} title={t('wg.stars', { model: wg.fc!.modelName, avg: wgAvg.toFixed(1), range: wgRange })} />
+            )}
             <span className={rideable ? 'summary ok' : 'summary'}>{summary}</span>
           </div>
         </div>
@@ -114,7 +126,7 @@ export function SpotCard(p: Props) {
           {p.transport === 'transit' && (
             <TransitBlock home={p.home} spot={spot} date={rating.date} startHour={rating.window?.start ?? null} />
           )}
-          <HourlyTable rating={rating} />
+          <HourlyTable rating={rating} wg={wg.fc} />
           <WindguruWidget
             spot={spot}
             date={rating.date}

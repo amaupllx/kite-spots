@@ -50,3 +50,17 @@ export function HeartButton({ active, onClick }: { active: boolean; onClick: () 
     </button>
   )
 }
+
+/** Étoiles Windguru (0 à 3), remplies proportionnellement à la moyenne. */
+export function WgStars({ value, title }: { value: number; title: string }) {
+  const pct = (Math.max(0, Math.min(3, value)) / 3) * 100
+  return (
+    <span className="wg-stars" title={title} aria-label={title}>
+      <span className="wg-label">WG</span>
+      <span className="stars stars-sm">
+        <span className="stars-bg">★★★</span>
+        <span className="stars-fg wg-fg" style={{ width: `${pct}%` }}>★★★</span>
+      </span>
+    </span>
+  )
+}
