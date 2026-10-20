@@ -2,7 +2,8 @@ import type { Spot } from '../types'
 
 // Directions : d'où vient le vent, en degrés (0 = N, 90 = E, 180 = S, 270 = O).
 // Bise ≈ NE (30–80°), Vent (Joran / sud-ouest) ≈ SO (200–260°), Föhn ≈ S (150–210°).
-// Les coordonnées pointent la zone de mise à l'eau. Vérifie toujours les règles
+// windguru : identifiant du spot sur windguru.cz (windguruApprox = spot Windguru voisin utilisé
+// faute de spot identique). Les coordonnées pointent la zone de mise à l'eau. Vérifie toujours les règles
 // locales (zones autorisées, distance au rivage, saisons de nidification).
 export const SPOTS: Spot[] = [
   // --- Lac de Neuchâtel ---
@@ -11,6 +12,7 @@ export const SPOTS: Spot[] = [
     lat: 46.8016, lon: 6.7423, directions: [[20, 80], [200, 260]], level: 'debutant',
     notes: 'Grande plage, eau peu profonde au bord. Bise et vent du sud-ouest side-shore.',
     notesEn: 'Large beach, shallow water near shore. Bise and south-westerly wind side-shore.',
+    windguru: 56998,
     alplakes: { model: 'mitgcm', lake: 'neuchatel' }, waterClimate: 'grand-lac',
   },
   {
@@ -18,6 +20,7 @@ export const SPOTS: Spot[] = [
     lat: 46.8146, lon: 6.7835, directions: [[20, 80], [200, 260]], level: 'debutant',
     notes: 'Spot très fréquenté, zone kite balisée. Bonne bise.',
     notesEn: 'Very popular spot with a marked kite zone. Good in the Bise.',
+    windguru: 56998, windguruApprox: 'Lac de Neuchatel, Yvonand',
     alplakes: { model: 'mitgcm', lake: 'neuchatel' }, waterClimate: 'grand-lac',
   },
   {
@@ -25,6 +28,7 @@ export const SPOTS: Spot[] = [
     lat: 46.8540, lon: 6.8520, directions: [[20, 80], [210, 260]], level: 'intermediaire',
     notes: 'Mise à l\'eau près du port, roseaux à éviter.',
     notesEn: 'Launch near the harbour, watch out for the reeds.',
+    windguru: 11916, windguruApprox: 'Lac de Neuchatel',
     alplakes: { model: 'mitgcm', lake: 'neuchatel' }, waterClimate: 'grand-lac',
   },
   {
@@ -32,6 +36,7 @@ export const SPOTS: Spot[] = [
     lat: 46.9205, lon: 6.9560, directions: [[200, 280], [20, 70]], level: 'intermediaire',
     notes: 'Bon par vent d\'ouest / sud-ouest.',
     notesEn: 'Good in westerly / south-westerly wind.',
+    windguru: 57000,
     alplakes: { model: 'mitgcm', lake: 'neuchatel' }, waterClimate: 'grand-lac',
   },
   {
@@ -39,6 +44,7 @@ export const SPOTS: Spot[] = [
     lat: 46.7860, lon: 6.6510, directions: [[15, 75]], level: 'debutant',
     notes: 'Bise onshore / side-on, plage de sable. Offshore par vent du SO.',
     notesEn: 'Bise onshore / side-on, sandy beach. Offshore in SW wind.',
+    windguru: 19185,
     alplakes: { model: 'mitgcm', lake: 'neuchatel' }, waterClimate: 'grand-lac',
   },
   {
@@ -46,6 +52,7 @@ export const SPOTS: Spot[] = [
     lat: 46.9600, lon: 6.8700, directions: [[200, 270]], level: 'intermediaire',
     notes: 'Vent du sud-ouest side-on, plage des Allées.',
     notesEn: 'South-westerly side-on, Allées beach.',
+    windguru: 57022, windguruApprox: 'Neuchatel, Saint-Blaise',
     alplakes: { model: 'mitgcm', lake: 'neuchatel' }, waterClimate: 'grand-lac',
   },
   // --- Lac de Morat / Bienne ---
@@ -54,6 +61,7 @@ export const SPOTS: Spot[] = [
     lat: 46.9050, lon: 7.0780, directions: [[20, 70], [200, 250]], level: 'debutant',
     notes: 'Petit lac, eau chaude en été. Axe du lac NE–SO.',
     notesEn: 'Small lake, warm water in summer. Lake axis NE–SW.',
+    windguru: 57018, windguruApprox: 'Murtensee, Salavaux',
     alplakes: { model: 'delft3d-flow', lake: 'murten' }, waterClimate: 'plaine',
   },
   {
@@ -61,6 +69,7 @@ export const SPOTS: Spot[] = [
     lat: 47.0460, lon: 7.1530, directions: [[220, 280], [30, 80]], level: 'intermediaire',
     notes: 'Vent d\'ouest et bise le long du lac.',
     notesEn: 'Westerly wind and Bise along the lake.',
+    windguru: 19183, windguruApprox: 'Bielersee',
     alplakes: { model: 'delft3d-flow', lake: 'biel' }, waterClimate: 'plaine',
   },
   // --- Léman ---
@@ -69,6 +78,7 @@ export const SPOTS: Spot[] = [
     lat: 46.5125, lon: 6.5235, directions: [[200, 260]], level: 'intermediaire',
     notes: 'Spot de référence pour le vent du sud-ouest. Bise offshore : à éviter.',
     notesEn: 'Reference spot for south-westerly wind. Bise is offshore: avoid.',
+    windguru: 133820, windguruApprox: 'Lac Leman - St. Sulpice',
     alplakes: { model: 'delft3d-flow', lake: 'geneva' }, waterClimate: 'grand-lac',
   },
   {
@@ -76,6 +86,7 @@ export const SPOTS: Spot[] = [
     lat: 46.4790, lon: 6.4570, directions: [[200, 260], [40, 80]], level: 'intermediaire',
     notes: 'Plage du Coulet. Vent du SO side-shore.',
     notesEn: 'Coulet beach. SW wind side-shore.',
+    windguru: 1223207,
     alplakes: { model: 'delft3d-flow', lake: 'geneva' }, waterClimate: 'grand-lac',
   },
   {
@@ -83,6 +94,7 @@ export const SPOTS: Spot[] = [
     lat: 46.3950, lon: 6.9000, directions: [[200, 290]], level: 'intermediaire',
     notes: 'Bout du lac, vent d\'ouest onshore et brise thermique l\'après-midi. Réserve naturelle à respecter.',
     notesEn: 'Head of the lake, onshore westerly and afternoon thermal. Respect the nature reserve.',
+    windguru: 92814, windguruApprox: 'Lac Léman - Bouveret',
     alplakes: { model: 'delft3d-flow', lake: 'geneva' }, waterClimate: 'grand-lac',
   },
   {
@@ -90,6 +102,7 @@ export const SPOTS: Spot[] = [
     lat: 46.3870, lon: 6.8560, directions: [[230, 320]], level: 'intermediaire',
     notes: 'Vent d\'ouest / nord-ouest onshore.',
     notesEn: 'Onshore westerly / north-westerly wind.',
+    windguru: 92814,
     alplakes: { model: 'delft3d-flow', lake: 'geneva' }, waterClimate: 'grand-lac',
   },
   {
@@ -97,6 +110,7 @@ export const SPOTS: Spot[] = [
     lat: 46.2080, lon: 6.1630, directions: [[20, 70]], level: 'avance',
     notes: 'Bise forte et rafaleuse, zone fréquentée. Pour riders confirmés.',
     notesEn: 'Strong, gusty Bise, busy area. For experienced riders.',
+    windguru: 263728, windguruApprox: 'Lac Léman, Le Reposoir',
     alplakes: { model: 'delft3d-flow', lake: 'geneva' }, waterClimate: 'grand-lac',
   },
   {
@@ -104,6 +118,7 @@ export const SPOTS: Spot[] = [
     lat: 46.3500, lon: 6.3560, directions: [[10, 70]], level: 'debutant',
     notes: 'Grande plage de sable, bise onshore. En France.',
     notesEn: 'Large sandy beach, onshore Bise. In France.',
+    windguru: 360662,
     alplakes: { model: 'delft3d-flow', lake: 'geneva' }, waterClimate: 'grand-lac',
   },
   // --- Jura ---
@@ -112,6 +127,7 @@ export const SPOTS: Spot[] = [
     lat: 46.6470, lon: 6.2980, directions: [[200, 250], [20, 70]], level: 'intermediaire',
     notes: 'Lac d\'altitude (1000 m), eau froide. Axe SO–NE.',
     notesEn: 'Mountain lake (1000 m), cold water. SW–NE axis.',
+    windguru: 1186833,
     alplakes: { model: 'delft3d-flow', lake: 'joux' }, waterClimate: 'altitude',
   },
   // --- Suisse centrale ---
@@ -120,6 +136,7 @@ export const SPOTS: Spot[] = [
     lat: 46.9050, lon: 8.6230, directions: [[150, 210]], level: 'avance',
     notes: 'Spot de Föhn mythique : vent fort et très rafaleux. Experts uniquement.',
     notesEn: 'Legendary Föhn spot: strong, very gusty wind. Experts only.',
+    windguru: 303067,
     alplakes: { model: 'mitgcm', lake: 'lucerne' }, waterClimate: 'grand-lac',
   },
   {
@@ -127,6 +144,7 @@ export const SPOTS: Spot[] = [
     lat: 46.9190, lon: 8.5940, directions: [[150, 210], [330, 30]], level: 'avance',
     notes: 'Föhn et thermique du nord. Place restreinte.',
     notesEn: 'Föhn and northerly thermal. Limited space.',
+    windguru: 301758,
     alplakes: { model: 'mitgcm', lake: 'lucerne' }, waterClimate: 'grand-lac',
   },
   {
@@ -141,6 +159,7 @@ export const SPOTS: Spot[] = [
     lat: 47.1230, lon: 9.3080, directions: [[240, 300]], level: 'intermediaire',
     notes: 'Vent d\'ouest canalisé dans la vallée.',
     notesEn: 'Westerly wind channelled by the valley.',
+    windguru: 37709, windguruApprox: 'Walensee',
     waterClimate: 'grand-lac',
   },
   // --- Est ---
@@ -149,6 +168,7 @@ export const SPOTS: Spot[] = [
     lat: 47.4890, lon: 9.5530, directions: [[200, 290], [20, 70]], level: 'debutant',
     notes: 'Rive suisse du lac de Constance. Vent d\'ouest / sud-ouest.',
     notesEn: 'Swiss shore of Lake Constance. West / south-westerly wind.',
+    windguru: 56977,
     waterClimate: 'grand-lac',
   },
   {
@@ -156,6 +176,7 @@ export const SPOTS: Spot[] = [
     lat: 47.5560, lon: 9.3830, directions: [[20, 80], [270, 330]], level: 'intermediaire',
     notes: 'Bise et vent de nord-ouest.',
     notesEn: 'Bise and north-westerly wind.',
+    windguru: 265086,
     waterClimate: 'grand-lac',
   },
   // --- Grisons ---
@@ -164,6 +185,7 @@ export const SPOTS: Spot[] = [
     lat: 46.4530, lon: 9.7950, directions: [[200, 250]], level: 'intermediaire',
     notes: 'Vent de Maloja quasi quotidien l\'après-midi par beau temps (mai–sept). Lac à 1800 m, eau très froide.',
     notesEn: 'Maloja wind almost daily in the afternoon in fair weather (May–Sept). Lake at 1800 m, very cold water.',
+    windguru: 1584,
     waterClimate: 'altitude',
   },
   // --- Italie proche ---
@@ -172,6 +194,7 @@ export const SPOTS: Spot[] = [
     lat: 46.1320, lon: 9.3770, directions: [[160, 220], [340, 30]], level: 'intermediaire',
     notes: 'Breva (sud) l\'après-midi, Tivano (nord) le matin. En Italie.',
     notesEn: 'Breva (south) in the afternoon, Tivano (north) in the morning. In Italy.',
+    windguru: 766,
     waterClimate: 'plaine',
   },
 ]

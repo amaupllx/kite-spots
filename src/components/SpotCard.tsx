@@ -5,6 +5,7 @@ import { dirLabel, formatDuration } from '../lib/geo'
 import { getWaterTemp, type WaterTemp } from '../services/water'
 import { HourlyTable } from './HourlyTable'
 import { TransitBlock } from './TransitBlock'
+import { WindguruWidget } from './WindguruWidget'
 import { scoreClass } from '../lib/classes'
 import { HeartButton, Stars } from './ui'
 
@@ -114,6 +115,7 @@ export function SpotCard(p: Props) {
             <TransitBlock home={p.home} spot={spot} date={rating.date} startHour={rating.window?.start ?? null} />
           )}
           <HourlyTable rating={rating} />
+          <WindguruWidget spot={spot} />
           <div className="links">
             <a href={`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lon}`} target="_blank" rel="noreferrer">{t('link.route')}</a>
             <a href={`https://www.windy.com/${spot.lat}/${spot.lon}?wind,${spot.lat},${spot.lon},11`} target="_blank" rel="noreferrer">Windy ↗</a>

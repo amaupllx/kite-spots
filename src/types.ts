@@ -38,6 +38,10 @@ export interface Spot {
   level: Level
   notes: string
   notesEn: string
+  /** Identifiant du spot sur windguru.cz (widget officiel). */
+  windguru?: number
+  /** Nom du spot Windguru voisin, quand il n'existe pas de spot identique. */
+  windguruApprox?: string
   alplakes?: AlplakesRef
   /** Profil thermique du plan d'eau pour l'estimation de secours (°C moyens par mois). */
   waterClimate: 'plaine' | 'grand-lac' | 'altitude'

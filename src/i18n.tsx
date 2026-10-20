@@ -131,6 +131,15 @@ const fr = {
   'transit.walk': 'Marche',
   'transit.early': "{min} min d'avance",
   'transit.source': 'Horaires : transport.opendata.ch',
+  'wg.title': 'Prévision Windguru',
+  'wg.open': 'windguru.cz/{id} ↗',
+  'wg.edit': "Modifier l'ID",
+  'wg.approx': 'Pas de spot Windguru identique : spot voisin « {name} ».',
+  'wg.custom': 'ID Windguru personnalisé.',
+  'wg.none': "Pas de spot Windguru associé : clique sur « Modifier l'ID » pour en ajouter un.",
+  'wg.idLabel': 'ID Windguru (le nombre dans windguru.cz/…)',
+  'wg.save': 'Enregistrer',
+  'wg.reset': 'Par défaut',
 }
 
 export type Key = keyof typeof fr
@@ -264,6 +273,15 @@ const en: Record<Key, string> = {
   'transit.walk': 'Walk',
   'transit.early': '{min} min early',
   'transit.source': 'Timetables: transport.opendata.ch',
+  'wg.title': 'Windguru forecast',
+  'wg.open': 'windguru.cz/{id} ↗',
+  'wg.edit': 'Edit ID',
+  'wg.approx': 'No identical Windguru spot: using nearby spot "{name}".',
+  'wg.custom': 'Custom Windguru ID.',
+  'wg.none': 'No Windguru spot linked: click "Edit ID" to add one.',
+  'wg.idLabel': 'Windguru ID (the number in windguru.cz/…)',
+  'wg.save': 'Save',
+  'wg.reset': 'Default',
 }
 
 const DICTS: Record<Lang, Record<Key, string>> = { fr, en }
