@@ -1,5 +1,6 @@
 export type Level = 'debutant' | 'intermediaire' | 'avance'
 export type Board = 'twintip' | 'surf' | 'foil'
+export type TransportMode = 'car' | 'transit'
 
 export interface Place {
   label: string
@@ -15,6 +16,7 @@ export interface Profile {
   kites: number[] // tailles d'ailes possédées (m²)
   maxTravelMin: number
   address: Place | null
+  transport: TransportMode
 }
 
 /** Plage de directions favorables, en degrés "d'où vient le vent" (from → to, sens horaire). */

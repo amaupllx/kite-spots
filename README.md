@@ -12,6 +12,9 @@ quels spots de kite sont praticables pour chaque jour des 7 prochains jours.
   classe les **meilleures sessions de 3 h** (une par spot et par jour) tous spots confondus.
 - **Interface bilingue FR / EN** (bouton en haut à droite, choix mémorisé).
 - **Temps de trajet** en voiture vers chaque spot (OSRM), filtrés par le trajet max.
+- **Option transports publics** : pour la session choisie, correspondances arrivant au spot
+  entre 1 h 30 et 30 min avant le début (marche comprise), avec le détail des trains / bus
+  et le tracé sur la carte.
 - **Note /5** par spot et par heure : force du vent, direction vs orientation du spot,
   rafales, pluie, orage, niveau requis.
 - **Taille d'aile conseillée** choisie **uniquement parmi tes ailes** (règle poids × k / vent,
@@ -45,6 +48,7 @@ Puis ouvre http://localhost:5173.
 | Vent, rafales, température, pluie, lever/coucher du soleil | [Open-Meteo](https://open-meteo.com) (modèles MétéoSuisse ICON-CH en Suisse) |
 | Température de l'eau | [Alplakes](https://www.alplakes.eawag.ch) – Eawag |
 | Temps de trajet | [OSRM](https://project-osrm.org) (serveur de démo public) |
+| Horaires transports publics | [transport.opendata.ch](https://transport.opendata.ch) |
 | Géocodage d'adresse | [Nominatim](https://nominatim.org) – OpenStreetMap |
 
 ## Structure

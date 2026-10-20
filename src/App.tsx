@@ -117,6 +117,7 @@ export default function App() {
 
   const toggleFav = (id: string) => setFavorites((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]))
   const rowKey = (r: Row) => (isRange ? `${r.spot.id}|${r.rating.date}` : r.spot.id)
+  const selectedRow = expanded ? visible.find((r) => rowKey(r) === expanded) ?? null : null
 
   function select(s: Selection) {
     setSel(s)
@@ -274,6 +275,18 @@ export default function App() {
                   onChange={(e) => setProfile({ ...profile, maxTravelMin: Number(e.target.value) })}
                 />
               </label>
+              <div className="mode-toggle" role="group" aria-label={t('filters.mode')}>
+                {(['car', 'transit'] as const).map((m) => (
+                  <button
+                    key={m}
+                    className={profile.transport === m ? 'active' : ''}
+                    aria-pressed={profile.transport === m}
+                    onClick={() => setProfile({ ...profile, transport: m })}
+                  >
+                    {t(`mode.${m}`)}
+                  </button>
+                ))}
+              </div>
               <div className="toggles">
                 <label className="check"><input type="checkbox" checked={favOnly} onChange={(e) => setFavOnly(e.target.checked)} /> {t('filters.favOnly')}</label>
                 {!isRange && (
@@ -281,6 +294,7 @@ export default function App() {
                 )}
               </div>
               <div className="profile-recap muted small">
+                {profile.transport === 'transit' && <>{t('filters.carBased')} </>}
                 {profile.weight} kg · {t('filters.kites')} {profile.kites.length ? profile.kites.join(' / ') + ' m²' : t('filters.none')}
               </div>
             </div>
@@ -319,6 +333,8 @@ export default function App() {
                     rating={r.rating}
                     dateLabel={isRange ? fmtDate(r.rating.date) : undefined}
                     travel={r.travel}
+                    home={home}
+                    transport={profile.transport}
                     travelEstimated={r.estimated}
                     favorite={favorites.includes(r.spot.id)}
                     onToggleFavorite={() => toggleFav(r.spot.id)}
@@ -345,6 +361,8 @@ export default function App() {
               home={home}
               radiusKm={radiusKm}
               selectedId={expanded ? expanded.split('|')[0] : null}
+              session={selectedRow ? { date: selectedRow.rating.date, startHour: selectedRow.rating.window?.start ?? null } : null}
+              transport={profile.transport}
               onSelect={selectFromMap}
             />
           </aside>

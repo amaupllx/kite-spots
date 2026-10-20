@@ -47,4 +47,5 @@ export const DEFAULT_PROFILE: Profile = {
   kites: [9, 12],
   maxTravelMin: 90,
   address: null,
+  transport: 'car',
 }

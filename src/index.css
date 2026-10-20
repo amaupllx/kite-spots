@@ -243,3 +243,24 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
   .logo { font-size: 1.3rem; }
 }
 .leaflet-tooltip.sel-tooltip { font-weight: 500; border-color: #e02424; }
+
+/* ---------- Mode de transport ---------- */
+.mode-toggle { grid-column: 1 / -1; display: inline-flex; justify-self: start; background: var(--surface-2); padding: 3px; border-radius: 10px; gap: 2px; }
+.mode-toggle button { border: 0; background: transparent; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; color: var(--muted); }
+.mode-toggle button.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+
+/* ---------- Bloc transports publics ---------- */
+.transit { background: var(--surface-2); border-radius: 12px; padding: 12px 14px; margin: 0 0 12px; display: flex; flex-direction: column; gap: 8px; }
+.transit h4 { margin: 0; font-size: 0.95rem; }
+.transit p { margin: 0; }
+.tiny { font-size: 0.72rem; }
+.trip { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; }
+.trip.primary { border-color: var(--accent); }
+.trip-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 0.92rem; }
+.early { background: #d6f5e6; color: #0b6b49; border-radius: 999px; padding: 1px 8px; font-size: 0.78rem; font-weight: 700; }
+@media (prefers-color-scheme: dark) { .early { background: #0f3e2d; color: #7ce0b3; } }
+.legs { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 0.82rem; }
+.legs li { display: flex; gap: 8px; align-items: baseline; }
+.leg-line { flex: 0 0 auto; min-width: 58px; font-weight: 700; background: #e02424; color: #fff; border-radius: 5px; padding: 1px 6px; text-align: center; font-size: 0.75rem; }
+.legs li.walk .leg-line { background: transparent; color: var(--muted); padding: 1px 0; text-align: left; }
+.leg-detail { color: var(--muted); }

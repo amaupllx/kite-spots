@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import type { DayRating, Spot, Travel } from '../types'
+import type { DayRating, Place, Spot, TransportMode, Travel } from '../types'
 import { useI18n } from '../i18n'
 import { dirLabel, formatDuration } from '../lib/geo'
 import { getWaterTemp, type WaterTemp } from '../services/water'
 import { HourlyTable } from './HourlyTable'
+import { TransitBlock } from './TransitBlock'
 import { scoreClass } from '../lib/classes'
 import { HeartButton, Stars } from './ui'
 
@@ -13,6 +14,8 @@ interface Props {
   /** Affiché en tête de carte (mode semaine / période). */
   dateLabel?: string
   travel?: Travel
+  home: Place | null
+  transport: TransportMode
   travelEstimated: boolean
   favorite: boolean
   onToggleFavorite: () => void
@@ -107,6 +110,9 @@ export function SpotCard(p: Props) {
             )}
           </div>
           <p className="notes">{lang === 'en' ? spot.notesEn : spot.notes}</p>
+          {p.transport === 'transit' && (
+            <TransitBlock home={p.home} spot={spot} date={rating.date} startHour={rating.window?.start ?? null} />
+          )}
           <HourlyTable rating={rating} />
           <div className="links">
             <a href={`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lon}`} target="_blank" rel="noreferrer">{t('link.route')}</a>

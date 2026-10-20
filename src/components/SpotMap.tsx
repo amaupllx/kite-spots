@@ -1,15 +1,27 @@
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useState } from 'react'
 import { Circle, CircleMarker, MapContainer, Polyline, TileLayer, Tooltip, useMap } from 'react-leaflet'
-import type { Place, Spot } from '../types'
+import type { Place, Spot, TransportMode } from '../types'
 import { useI18n } from '../i18n'
 import { formatDuration } from '../lib/geo'
-import { fetchRoute, type Route } from '../services/routing'
+import { fetchRoute } from '../services/routing'
+import { findTransit } from '../services/transit'
 
 interface MapSpot {
   spot: Spot
   score: number
   rideable: boolean
+}
+
+interface Segment {
+  coords: [number, number][]
+  walk: boolean
+}
+
+interface Path {
+  key: string
+  segments: Segment[] // vide si aucun itinéraire trouvé
+  label: string
 }
 
 const COLORS = { top: '#0e9f6e', good: '#38b26b', ok: '#e3a008', low: '#f98a4b', none: '#9aa5b1' }
@@ -29,7 +41,7 @@ function FitBounds({ points }: { points: [number, number][] }) {
   const key = points.map((p) => p.join(',')).join('|')
   useEffect(() => {
     if (points.length === 0) return
-    map.fitBounds(points, { padding: [30, 30], maxZoom: 10 })
+    map.fitBounds(points, { padding: [30, 30], maxZoom: 11 })
   }, [key])
   return null
 }
@@ -39,40 +51,67 @@ interface Props {
   home: Place | null
   radiusKm: number
   selectedId: string | null
+  session: { date: string; startHour: number | null } | null
+  transport: TransportMode
   onSelect: (id: string) => void
 }
 
-export function SpotMap({ spots, home, radiusKm, selectedId, onSelect }: Props) {
+export function SpotMap({ spots, home, radiusKm, selectedId, session, transport, onSelect }: Props) {
   const { t } = useI18n()
   const selected = spots.find((m) => m.spot.id === selectedId) ?? null
-  const [route, setRoute] = useState<{ id: string; route: Route | null } | null>(null)
+  const [path, setPath] = useState<Path | null>(null)
+
+  const pathKey = selected && home ? `${transport}|${selected.spot.id}|${session?.date}|${session?.startHour}` : null
 
   useEffect(() => {
-    if (!home || !selected) return
+    if (!pathKey || !home || !selected) return
     let alive = true
-    const id = selected.spot.id
-    fetchRoute(home, selected.spot)
-      .then((r) => alive && setRoute({ id, route: r }))
-      .catch(() => alive && setRoute({ id, route: null }))
+    const done = (p: Omit<Path, 'key'>) => alive && setPath({ key: pathKey, ...p })
+    const none = () => done({ segments: [], label: '' })
+
+    if (transport === 'car') {
+      fetchRoute(home, selected.spot)
+        .then((r) =>
+          done({
+            segments: [{ coords: r.coords, walk: false }],
+            label: `🚗 ${formatDuration(r.durationMin)} · ${Math.round(r.distanceKm)} km`,
+          }),
+        )
+        .catch(none)
+    } else if (session && session.startHour !== null) {
+      findTransit(home, selected.spot, session.date, session.startHour)
+        .then((res) => {
+          const trip = res.options[0] ?? res.fallback
+          if (!trip) return none()
+          done({
+            segments: trip.legs.filter((l) => l.coords.length > 1).map((l) => ({ coords: l.coords, walk: l.kind === 'walk' })),
+            label: `🚆 ${trip.dep} → ${trip.arr} · ${formatDuration(trip.durationMin)}`,
+          })
+        })
+        .catch(none)
+    } else none()
     return () => {
       alive = false
     }
-  }, [home, selected?.spot])
+  }, [pathKey])
 
-  const current = route && selected && route.id === selected.spot.id ? route : null
-  // Tracé réel si dispo, sinon ligne droite en pointillés pendant le chargement ou en cas d'échec.
-  const line: [number, number][] | null =
-    home && selected ? (current?.route?.coords ?? [[home.lat, home.lon], [selected.spot.lat, selected.spot.lon]]) : null
+  // On n'affiche le tracé qu'une fois reçu (pas de ligne provisoire pendant le chargement).
+  const current = path && path.key === pathKey ? path : null
+  const segments = current?.segments ?? []
 
-  // Carte recadrée sur le trajet quand un spot est sélectionné, sinon sur tous les spots.
-  let points: [number, number][]
-  if (selected) points = line ?? [[selected.spot.lat, selected.spot.lon]]
-  else {
-    points = spots.map((m) => [m.spot.lat, m.spot.lon])
-    if (home) points.push([home.lat, home.lon])
+  let fitPoints: [number, number][]
+  if (selected) {
+    // Recadrage seulement quand la réponse est arrivée, pour éviter deux zooms successifs.
+    if (home && !current) fitPoints = []
+    else if (segments.length) fitPoints = segments.flatMap((s) => s.coords)
+    else fitPoints = home ? [[home.lat, home.lon], [selected.spot.lat, selected.spot.lon]] : [[selected.spot.lat, selected.spot.lon]]
+  } else {
+    fitPoints = spots.map((m) => [m.spot.lat, m.spot.lon])
+    if (home) fitPoints.push([home.lat, home.lon])
   }
-  // Ne recadre qu'une fois le tracé final connu, pour éviter deux zooms successifs.
-  const fitPoints = selected && home && !current ? [] : points
+
+  // Arrêts de correspondance (début de chaque tronçon en train / bus).
+  const stops = transport === 'transit' ? segments.filter((s) => !s.walk).flatMap((s) => [s.coords[0], s.coords[s.coords.length - 1]]) : []
 
   return (
     <MapContainer center={[46.8, 8.2]} zoom={7} className="map" scrollWheelZoom={window.matchMedia('(min-width: 1001px)').matches}>
@@ -81,15 +120,15 @@ export function SpotMap({ spots, home, radiusKm, selectedId, onSelect }: Props) 
       {radiusKm > 0 && home && (
         <Circle center={[home.lat, home.lon]} radius={radiusKm * 1000} pathOptions={{ color: HOME, weight: 1, fillOpacity: 0.04 }} />
       )}
-      {line && (
-        <>
-          <Polyline positions={line} pathOptions={{ color: '#fff', weight: 8, opacity: 0.9 }} />
-          <Polyline
-            positions={line}
-            pathOptions={{ color: SELECTED, weight: 4, opacity: 0.9, dashArray: current?.route ? undefined : '6 8' }}
-          />
-        </>
-      )}
+      {segments.map((s, i) => (
+        <Polyline key={`c${i}`} positions={s.coords} pathOptions={{ color: '#fff', weight: s.walk ? 6 : 8, opacity: 0.9 }} />
+      ))}
+      {segments.map((s, i) => (
+        <Polyline key={`l${i}`} positions={s.coords} pathOptions={{ color: SELECTED, weight: s.walk ? 3 : 4, opacity: s.walk ? 0.55 : 0.9 }} />
+      ))}
+      {stops.map((p, i) => (
+        <CircleMarker key={`s${i}`} center={p} radius={4} pathOptions={{ color: SELECTED, weight: 2, fillColor: '#fff', fillOpacity: 1 }} />
+      ))}
       {spots
         .filter((m) => m.spot.id !== selectedId)
         .map((m) => (
@@ -111,9 +150,9 @@ export function SpotMap({ spots, home, radiusKm, selectedId, onSelect }: Props) 
         </CircleMarker>
       )}
       {selected && (
-        // La clé change avec la sélection pour que le tooltip permanent se replace correctement.
+        // La clé change avec le libellé pour que le tooltip permanent se replace correctement.
         <CircleMarker
-          key={`sel-${selected.spot.id}-${current?.route ? 'r' : 'n'}`}
+          key={`sel-${selected.spot.id}-${current?.label ?? ''}`}
           center={[selected.spot.lat, selected.spot.lon]}
           radius={12}
           pathOptions={{ color: '#fff', weight: 3, fillColor: SELECTED, fillOpacity: 1 }}
@@ -121,7 +160,7 @@ export function SpotMap({ spots, home, radiusKm, selectedId, onSelect }: Props) 
         >
           <Tooltip permanent direction="top" offset={[0, -12]} className="sel-tooltip">
             <strong>{selected.spot.name}</strong>
-            {current?.route && ` · 🚗 ${formatDuration(current.route.durationMin)} · ${Math.round(current.route.distanceKm)} km`}
+            {current?.label && ` · ${current.label}`}
           </Tooltip>
         </CircleMarker>
       )}
