@@ -340,7 +340,13 @@ export default function App() {
           </section>
 
           <aside className="map-col">
-            <SpotMap spots={mapSpots} home={home} radiusKm={radiusKm} onSelect={selectFromMap} />
+            <SpotMap
+              spots={mapSpots}
+              home={home}
+              radiusKm={radiusKm}
+              selectedId={expanded ? expanded.split('|')[0] : null}
+              onSelect={selectFromMap}
+            />
           </aside>
         </main>
       )}

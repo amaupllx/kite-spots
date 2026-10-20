@@ -20,7 +20,8 @@ quels spots de kite sont praticables pour chaque jour des 7 prochains jours.
   température de l'air, probabilité et cumul de pluie.
 - **Température de l'eau** : simulations Alplakes (Eawag) pour les lacs couverts,
   sinon estimation saisonnière.
-- **Spots favoris** et carte interactive (Leaflet / OpenStreetMap).
+- **Spots favoris** et carte interactive (Leaflet / OpenStreetMap) : le spot sélectionné passe
+  en rouge et l'itinéraire routier depuis ton adresse est tracé.
 
 ## Lancer en local
 

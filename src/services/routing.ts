@@ -43,3 +43,37 @@ export async function fetchTravelTimes(origin: Place, spots: Spot[]): Promise<Re
   }
   return known
 }
+
+export interface Route {
+  coords: [number, number][] // [lat, lon]
+  durationMin: number
+  distanceKm: number
+}
+
+const routeCache = new Map<string, Promise<Route>>()
+
+/** Tracé routier complet adresse → spot (OSRM « route », géométrie GeoJSON). */
+export function fetchRoute(origin: Place, spot: Spot): Promise<Route> {
+  const key = `${originKey(origin)}|${spot.id}`
+  const hit = routeCache.get(key)
+  if (hit) return hit
+  const p = (async () => {
+    const coords = `${origin.lon.toFixed(5)},${origin.lat.toFixed(5)};${spot.lon.toFixed(5)},${spot.lat.toFixed(5)}`
+    const res = await fetch(`/api/osrm/route/v1/driving/${coords}?overview=full&geometries=geojson`)
+    if (!res.ok) throw new Error(`OSRM : HTTP ${res.status}`)
+    const json = (await res.json()) as {
+      code: string
+      routes: { duration: number; distance: number; geometry: { coordinates: [number, number][] } }[]
+    }
+    if (json.code !== 'Ok' || !json.routes[0]) throw new Error(`OSRM : ${json.code}`)
+    const r = json.routes[0]
+    return {
+      coords: r.geometry.coordinates.map(([lon, lat]) => [lat, lon] as [number, number]),
+      durationMin: r.duration / 60,
+      distanceKm: r.distance / 1000,
+    }
+  })()
+  routeCache.set(key, p)
+  p.catch(() => routeCache.delete(key))
+  return p
+}
