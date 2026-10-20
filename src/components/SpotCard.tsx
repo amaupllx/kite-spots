@@ -5,7 +5,6 @@ import { dirLabel, formatDuration } from '../lib/geo'
 import { getWaterTemp, type WaterTemp } from '../services/water'
 import { HourlyTable } from './HourlyTable'
 import { TransitBlock } from './TransitBlock'
-import { WindguruWidget } from './WindguruWidget'
 import { scoreClass } from '../lib/classes'
 import { HeartButton, Stars, WgStars } from './ui'
 import { useWindguru } from '../lib/useWindguru'
@@ -127,15 +126,14 @@ export function SpotCard(p: Props) {
             <TransitBlock home={p.home} spot={spot} date={rating.date} startHour={rating.window?.start ?? null} />
           )}
           <HourlyTable rating={rating} wg={wg.fc} />
-          <WindguruWidget
-            spot={spot}
-            date={rating.date}
-            fromHour={rating.hours[0]?.hour.hour ?? 6}
-            toHour={(rating.hours[rating.hours.length - 1]?.hour.hour ?? 20) + 1}
-          />
           <div className="links">
             <a href={`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lon}`} target="_blank" rel="noreferrer">{t('link.route')}</a>
             <a href={`https://www.windy.com/${spot.lat}/${spot.lon}?wind,${spot.lat},${spot.lon},11`} target="_blank" rel="noreferrer">Windy ↗</a>
+            {wg.id && (
+              <a href={`https://www.windguru.cz/${wg.id}`} target="_blank" rel="noreferrer">
+                Windguru ↗
+              </a>
+            )}
             <a href={lang === 'en' ? 'https://www.meteoswiss.admin.ch/' : 'https://www.meteosuisse.admin.ch/'} target="_blank" rel="noreferrer">
               {lang === 'en' ? 'MeteoSwiss ↗' : 'MétéoSuisse ↗'}
             </a>

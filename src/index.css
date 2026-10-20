@@ -265,15 +265,6 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 .legs li.walk .leg-line { background: transparent; color: var(--muted); padding: 1px 0; text-align: left; }
 .leg-detail { color: var(--muted); }
 
-/* ---------- Widget Windguru ---------- */
-.wg { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
-.wg-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.wg-head h4 { margin: 0; font-size: 0.95rem; }
-.wg-head a { color: var(--accent); text-decoration: none; font-weight: 600; }
-.wg p { margin: 0; }
-.wg-form input { flex: 1; }
-.wg-frame { min-height: 40px; overflow-x: auto; border-radius: 10px; }
-
 /* ---------- Étoiles Windguru ---------- */
 .wg-stars { display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border-radius: 6px; background: var(--surface-2); }
 .wg-label { font-size: 0.68rem; font-weight: 800; color: var(--muted); letter-spacing: 0.04em; }

@@ -9,7 +9,6 @@ const MODEL = 3
 const CACHE_KEY = 'kite.windguru.v1'
 const CACHE_MS = 3 * 3600 * 1000
 const OVERRIDES_KEY = 'kite.windguruIds'
-export const WG_ID_EVENT = 'kite-windguru-id'
 
 export interface WgHour {
   wind: number // nœuds
@@ -24,25 +23,13 @@ export interface WgForecast {
   hours: Record<string, WgHour>
 }
 
-/** Identifiants Windguru personnalisés (saisis dans le widget de la fiche). */
+/** Identifiants Windguru personnalisés éventuellement enregistrés par une version précédente. */
 export function readWindguruOverrides(): Record<string, number> {
   try {
     return JSON.parse(localStorage.getItem(OVERRIDES_KEY) ?? '{}') as Record<string, number>
   } catch {
     return {}
   }
-}
-
-export function writeWindguruOverride(spotId: string, id: number | null) {
-  const all = readWindguruOverrides()
-  if (id === null) delete all[spotId]
-  else all[spotId] = id
-  try {
-    localStorage.setItem(OVERRIDES_KEY, JSON.stringify(all))
-  } catch {
-    /* stockage indisponible */
-  }
-  window.dispatchEvent(new Event(WG_ID_EVENT))
 }
 
 export function windguruIdOf(spot: Spot): number | null {

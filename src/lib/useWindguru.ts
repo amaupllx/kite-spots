@@ -1,18 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { Spot } from '../types'
-import { WG_ID_EVENT, getWindguru, windguruIdOf, type WgForecast } from '../services/windguru'
+import { getWindguru, windguruIdOf, type WgForecast } from '../services/windguru'
 
 /** Prévision Windguru (étoiles) du spot, chargée à la demande et mise en cache. */
 export function useWindguru(spot: Spot) {
-  const [id, setId] = useState(() => windguruIdOf(spot))
+  const id = windguruIdOf(spot)
   const [state, setState] = useState<{ id: number; fc?: WgForecast; error?: string } | null>(null)
-
-  useEffect(() => {
-    const onChange = () => setId(windguruIdOf(spot))
-    onChange()
-    window.addEventListener(WG_ID_EVENT, onChange)
-    return () => window.removeEventListener(WG_ID_EVENT, onChange)
-  }, [spot])
 
   useEffect(() => {
     if (!id) return
