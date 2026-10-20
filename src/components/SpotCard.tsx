@@ -115,7 +115,12 @@ export function SpotCard(p: Props) {
             <TransitBlock home={p.home} spot={spot} date={rating.date} startHour={rating.window?.start ?? null} />
           )}
           <HourlyTable rating={rating} />
-          <WindguruWidget spot={spot} />
+          <WindguruWidget
+            spot={spot}
+            date={rating.date}
+            fromHour={rating.hours[0]?.hour.hour ?? 6}
+            toHour={(rating.hours[rating.hours.length - 1]?.hour.hour ?? 20) + 1}
+          />
           <div className="links">
             <a href={`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lon}`} target="_blank" rel="noreferrer">{t('link.route')}</a>
             <a href={`https://www.windy.com/${spot.lat}/${spot.lon}?wind,${spot.lat},${spot.lon},11`} target="_blank" rel="noreferrer">Windy ↗</a>

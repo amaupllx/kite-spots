@@ -23,12 +23,29 @@ function writeOverride(spotId: string, id: number | null) {
   }
 }
 
+interface Props {
+  spot: Spot
+  /** Jour affiché (YYYY-MM-DD) : le widget s'arrête à la fin de ce jour. */
+  date: string
+  /** Heures de jour [début, fin) pour limiter les colonnes affichées. */
+  fromHour: number
+  toHour: number
+}
+
+/** Nombre d'heures de prévision entre maintenant et la fin du jour `date` (heure locale). */
+function hoursUntilEndOf(date: string) {
+  const end = new Date(`${date}T23:59:59`).getTime()
+  return Math.max(1, Math.ceil((end - Date.now()) / 3600_000))
+}
+
 /**
  * Widget officiel Windguru (« Add to your website ») : le script widget.php insère une iframe
  * juste après l'élément dont l'id vaut `uid`. On le monte à la main dans un conteneur que
- * React ne gère pas, et on vide ce conteneur quand le spot ou la langue changent.
+ * React ne gère pas, et on vide ce conteneur quand le spot, le jour ou la langue changent.
+ * Windguru ne permet pas de choisir le jour de départ : on coupe à la fin du jour choisi
+ * (fhours) et on ne garde que les heures de jour (odh / doh).
  */
-export function WindguruWidget({ spot }: { spot: Spot }) {
+export function WindguruWidget({ spot, date, fromHour, toHour }: Props) {
   const { t, lang } = useI18n()
   const [override, setOverride] = useState<number | null>(() => readOverrides()[spot.id] ?? null)
   const [editing, setEditing] = useState(false)
@@ -53,9 +70,9 @@ export function WindguruWidget({ spot }: { spot: Spot }) {
       'tj=c',
       'waj=m',
       'tij=cm',
-      'odh=6',
-      'doh=21',
-      'fhours=168',
+      `odh=${fromHour}`,
+      `doh=${toHour}`,
+      `fhours=${hoursUntilEndOf(date)}`,
       'hrsm=1',
       'vt=forecasts',
       `lng=${lang}`,
@@ -67,7 +84,7 @@ export function WindguruWidget({ spot }: { spot: Spot }) {
     script.async = true
     el.appendChild(script)
     return () => el.replaceChildren()
-  }, [id, lang])
+  }, [id, lang, date, fromHour, toHour])
 
   function save(e: React.FormEvent) {
     e.preventDefault()
