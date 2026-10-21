@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { SPOTS } from './data/spots'
 import { useI18n } from './i18n'
 import { HAS_PROXY } from './config'
+import { useMediaQuery } from './lib/useMediaQuery'
 import { haversineKm } from './lib/geo'
 import { bestSession, rateDay } from './lib/rating'
 import { DEFAULT_PROFILE, useLocalList, useLocalStorage } from './lib/storage'
@@ -42,6 +43,10 @@ export default function App() {
   const [limit, setLimit] = useState(PAGE)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [highlight, setHighlight] = useState<string | null>(null)
+  // Sur téléphone : carte et filtres repliables pour garder les résultats en haut de l'écran.
+  const isMobile = useMediaQuery('(max-width: 1000px)')
+  const [showMap, setShowMap] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   useEffect(() => {
     fetchForecasts(SPOTS)
@@ -142,6 +147,18 @@ export default function App() {
 
   const last = Math.max(0, days.length - 1)
 
+  const map = (
+    <SpotMap
+      spots={mapSpots}
+      home={home}
+      radiusKm={radiusKm}
+      selectedId={expanded ? expanded.split('|')[0] : null}
+      session={selectedRow ? { date: selectedRow.rating.date, startHour: selectedRow.rating.window?.start ?? null } : null}
+      transport={profile.transport}
+      onSelect={selectFromMap}
+    />
+  )
+
   return (
     <div className="app">
       <header className="topbar">
@@ -197,7 +214,10 @@ export default function App() {
                   role="tab"
                   aria-selected={sel.kind === 'day' && sel.idx === i}
                   className={sel.kind === 'day' && sel.idx === i ? 'active' : ''}
-                  onClick={() => select({ kind: 'day', idx: i })}
+                  onClick={(e) => {
+                    select({ kind: 'day', idx: i })
+                    e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' })
+                  }}
                 >
                   {dayLabel(i)}
                 </button>
@@ -260,7 +280,16 @@ export default function App() {
               </div>
             )}
 
-            <div className="card filters">
+            <div className={`card filters ${filtersOpen ? 'open' : 'closed'}`}>
+              <button type="button" className="filters-toggle" onClick={() => setFiltersOpen((o) => !o)} aria-expanded={filtersOpen}>
+                <span>⚙️ {t('filters.title')}</span>
+                <span className="muted small">
+                  {radiusKm ? `${radiusKm} km · ` : ''}
+                  {profile.maxTravelMin} min · {t(`mode.${profile.transport}`)}
+                  {favOnly ? ` · ♥` : ''}
+                </span>
+                <span className="chevron" aria-hidden>{filtersOpen ? '▴' : '▾'}</span>
+              </button>
               <label className="field inline">
                 <span>{t('filters.radius')} {radiusKm === 0 ? <strong>{t('filters.unlimited')}</strong> : <strong>{radiusKm} km</strong>}</span>
                 <input type="range" min={0} max={250} step={10} value={radiusKm} onChange={(e) => setRadiusKm(Number(e.target.value))} />
@@ -305,6 +334,7 @@ export default function App() {
             {!forecasts && !forecastError && <div className="card loading">{t('loading')}</div>}
 
             {forecasts && (
+              <div className="result-row">
               <p className="result-count">
                 {sel.kind === 'day'
                   ? t('count.day', { n: rideableCount, total: reachable.length, date: fmtDate(days[sel.idx]) })
@@ -316,7 +346,15 @@ export default function App() {
                       to: fmtDate(days[sel.to]),
                     })}
               </p>
+              {isMobile && (
+                <button type="button" className={`btn map-btn ${showMap ? 'on' : ''}`} onClick={() => setShowMap((v) => !v)} aria-pressed={showMap}>
+                  {showMap ? t('map.hide') : t('map.show')}
+                </button>
+              )}
+              </div>
             )}
+
+            {isMobile && showMap && <div className="map-inline">{map}</div>}
 
             {forecasts && visible.length === 0 && (
               <div className="card empty">
@@ -359,17 +397,7 @@ export default function App() {
             </footer>
           </section>
 
-          <aside className="map-col">
-            <SpotMap
-              spots={mapSpots}
-              home={home}
-              radiusKm={radiusKm}
-              selectedId={expanded ? expanded.split('|')[0] : null}
-              session={selectedRow ? { date: selectedRow.rating.date, startHour: selectedRow.rating.window?.start ?? null } : null}
-              transport={profile.transport}
-              onSelect={selectFromMap}
-            />
-          </aside>
+          {!isMobile && <aside className="map-col">{map}</aside>}
         </main>
       )}
     </div>

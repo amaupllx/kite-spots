@@ -9,6 +9,7 @@ export function HourlyTable({ rating, wg }: { rating: DayRating; wg?: WgForecast
   const { t, dir } = useI18n()
   if (rating.hours.length === 0) return <p className="muted">{t('table.none')}</p>
   return (
+    <>
     <div className="table-wrap">
       <table className="hourly">
         <thead>
@@ -52,12 +53,13 @@ export function HourlyTable({ rating, wg }: { rating: DayRating; wg?: WgForecast
           })}
         </tbody>
       </table>
+    </div>
       <p className="legend small muted">
         {t('legend.prefix')} <span className="fit-ideal kite-tag">{t('legend.ideal')}</span>{' '}
         <span className="fit-surtoile kite-tag">{t('legend.over')}</span>{' '}
         <span className="fit-soustoile kite-tag">{t('legend.under')}</span> {t('legend.suffix')}
       </p>
-    </div>
+    </>
   )
 }
 

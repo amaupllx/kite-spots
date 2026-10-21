@@ -273,3 +273,86 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 .wg-on { color: #1c64f2; }
 .wg-off { color: var(--border); }
 .static-note { margin: 0 0 6px; padding: 8px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--text); }
+
+/* ---------- Téléphone (iPhone) ---------- */
+html { -webkit-text-size-adjust: 100%; }
+body { -webkit-tap-highlight-color: transparent; }
+button, a, input, select, label { touch-action: manipulation; }
+/* Encoche / Dynamic Island et barre d'accueil (viewport-fit=cover). */
+.topbar {
+  padding-top: max(10px, env(safe-area-inset-top));
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+}
+.container { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+.filters-toggle, .map-btn { display: none; }
+.result-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+@media (max-width: 1000px) {
+  .topbar {
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  .container {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  /* En dessous de 16 px, Safari iOS zoome sur le champ au toucher. */
+  input, select, textarea { font-size: 16px; }
+
+  .filters { grid-template-columns: 1fr; }
+  .filters-toggle {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    border: 0; background: none; padding: 2px 0; min-height: 32px; text-align: left; font-weight: 700;
+  }
+  .filters-toggle .muted { flex: 1; min-width: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chevron { color: var(--muted); }
+  .filters.closed { padding-top: 10px; padding-bottom: 10px; }
+  .filters.closed > :not(.filters-toggle) { display: none; }
+
+  .map-btn { display: inline-flex; flex: 0 0 auto; padding: 7px 12px; white-space: nowrap; }
+  .map-btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .map-inline { height: 300px; }
+}
+
+@media (max-width: 600px) {
+  .topbar .tabs button { padding: 6px 11px; }
+  .lang button { padding: 6px 8px; }
+
+  /* Jours sur une seule ligne qui défile horizontalement. */
+  .day-tabs {
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+    margin: 0 -12px; padding: 2px 12px; scroll-padding: 0 12px;
+  }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .day-tabs button { flex: 0 0 auto; min-height: 40px; }
+
+  .spot-head { padding: 12px; gap: 10px; }
+  .score-badge { width: 44px; height: 44px; font-size: 1.05rem; }
+  .spot-side { padding-left: 54px; gap: 8px; }
+  .spot-body { padding: 4px 12px 12px; }
+  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .links { flex-wrap: wrap; gap: 10px 18px; }
+
+  /* Tableau horaire compact, défilant bord à bord, colonne des heures figée. */
+  .table-wrap { margin: 0 -12px; -webkit-overflow-scrolling: touch; }
+  .hourly th:first-child, .hourly td:first-child { padding-left: 12px; }
+  .hourly th:last-child, .hourly td:last-child { padding-right: 12px; }
+  .hourly { font-size: 0.8rem; }
+  .hourly th, .hourly td { padding: 5px; }
+  .hourly th:first-child, .hourly td:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+  .hourly tr.in-window td:first-child { background: var(--accent-soft); }
+  .wpill { min-width: 26px; padding: 2px 4px; }
+  .score-dot { min-width: 30px; }
+
+  .profile { grid-template-columns: minmax(0, 1fr); }
+  .profile-actions .btn { width: 100%; }
+}
+/* Les champs du profil rétrécissent avec la colonne (sinon débordement sur iPhone). */
+.grid2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.field input:not([type='range']):not([type='checkbox']), .field select { width: 100%; min-width: 0; }
+.row input { min-width: 0; }
+@media (max-width: 600px) {
+  .fav-list { grid-template-columns: minmax(0, 1fr); max-height: none; }
+}
