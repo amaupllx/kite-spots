@@ -23,9 +23,10 @@ quels spots de kite sont praticables pour chaque jour des 7 prochains jours.
   température de l'air, probabilité et cumul de pluie.
 - **Température de l'eau** : simulations Alplakes (Eawag) pour les lacs couverts,
   sinon estimation saisonnière.
-- **Widget officiel Windguru** dans chaque fiche (prévision + étoiles Windguru). Les
-  identifiants sont dans `src/data/spots.ts` (`windguru`) et modifiables depuis la fiche
-  (« Modifier l'ID », mémorisé dans le navigateur).
+- **Étoiles Windguru** (0 à 3, modèle GFS 13 km) à côté de la note : badge moyen sur la
+  session et colonne WG dans le tableau horaire. Récupérées via l'API interne de Windguru
+  (non documentée, usage personnel en local), avec cache de 3 h. Identifiants dans
+  `src/data/spots.ts` (`windguru`).
 - **Spots favoris** et carte interactive (Leaflet / OpenStreetMap) : le spot sélectionné passe
   en rouge et l'itinéraire routier depuis ton adresse est tracé.
 
@@ -52,6 +53,7 @@ Puis ouvre http://localhost:5173.
 | Température de l'eau | [Alplakes](https://www.alplakes.eawag.ch) – Eawag |
 | Temps de trajet | [OSRM](https://project-osrm.org) (serveur de démo public) |
 | Horaires transports publics | [transport.opendata.ch](https://transport.opendata.ch) |
+| Étoiles Windguru | windguru.net (API interne, usage personnel) |
 | Géocodage d'adresse | [Nominatim](https://nominatim.org) – OpenStreetMap |
 
 ## Structure
