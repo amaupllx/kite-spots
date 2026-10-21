@@ -35,6 +35,8 @@ const fr = {
   'empty.hint': 'Essaie un autre jour, élargis le trajet max ou coche « Afficher les spots non praticables ».',
   'empty.hintRange': 'Élargis la période ou le trajet max.',
   'more': 'Afficher plus de sessions',
+  'footer.static':
+    "Version en ligne : température de l'eau estimée (moyenne saisonnière) et pas d'étoiles Windguru. Lance l'app en local pour les avoir.",
   'footer':
     'Météo : Open-Meteo (modèles MétéoSuisse ICON-CH) · Eau : Alplakes / Eawag · Trajets : OSRM · Cartes : © OpenStreetMap. Les notes sont indicatives : vérifie toujours les conditions et la réglementation locale sur place.',
 
@@ -170,6 +172,8 @@ const en: Record<Key, string> = {
   'empty.hint': 'Try another day, increase the max drive or tick "Show non-rideable spots".',
   'empty.hintRange': 'Widen the period or increase the max drive.',
   'more': 'Show more sessions',
+  'footer.static':
+    'Online version: estimated water temperature (seasonal average) and no Windguru stars. Run the app locally to get them.',
   'footer':
     'Weather: Open-Meteo (MeteoSwiss ICON-CH models) · Water: Alplakes / Eawag · Routing: OSRM · Maps: © OpenStreetMap. Ratings are indicative: always check conditions and local regulations on site.',
 

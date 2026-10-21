@@ -1,4 +1,5 @@
 import type { Place, Spot, Travel } from '../types'
+import { OSRM_URL } from '../config'
 
 const STORAGE_KEY = 'kite.travelCache.v1'
 
@@ -25,7 +26,7 @@ export async function fetchTravelTimes(origin: Place, spots: Spot[]): Promise<Re
   if (missing.length === 0) return known
 
   const coords = [origin, ...missing].map((p) => `${p.lon.toFixed(5)},${p.lat.toFixed(5)}`).join(';')
-  const res = await fetch(`/api/osrm/table/v1/driving/${coords}?sources=0&annotations=duration,distance`)
+  const res = await fetch(`${OSRM_URL}/table/v1/driving/${coords}?sources=0&annotations=duration,distance`)
   if (!res.ok) throw new Error(`OSRM : HTTP ${res.status}`)
   const json = (await res.json()) as { code: string; durations: (number | null)[][]; distances: (number | null)[][] }
   if (json.code !== 'Ok') throw new Error(`OSRM : ${json.code}`)
@@ -59,7 +60,7 @@ export function fetchRoute(origin: Place, spot: Spot): Promise<Route> {
   if (hit) return hit
   const p = (async () => {
     const coords = `${origin.lon.toFixed(5)},${origin.lat.toFixed(5)};${spot.lon.toFixed(5)},${spot.lat.toFixed(5)}`
-    const res = await fetch(`/api/osrm/route/v1/driving/${coords}?overview=full&geometries=geojson`)
+    const res = await fetch(`${OSRM_URL}/route/v1/driving/${coords}?overview=full&geometries=geojson`)
     if (!res.ok) throw new Error(`OSRM : HTTP ${res.status}`)
     const json = (await res.json()) as {
       code: string

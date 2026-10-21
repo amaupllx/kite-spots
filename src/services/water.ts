@@ -1,4 +1,5 @@
 import type { Spot } from '../types'
+import { HAS_PROXY } from '../config'
 
 export interface WaterTemp {
   value: number
@@ -45,7 +46,8 @@ export function getWaterTemp(spot: Spot, date: string): Promise<WaterTemp> {
 
   const p = (async (): Promise<WaterTemp> => {
     const day = new Date(`${date}T12:00:00`)
-    if (spot.alplakes) {
+    // Alplakes n'accepte pas les appels directs : sans relais (version en ligne), estimation seule.
+    if (spot.alplakes && HAS_PROXY) {
       try {
         return { value: await alplakes(spot, day), source: 'alplakes' }
       } catch {

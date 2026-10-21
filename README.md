@@ -45,6 +45,17 @@ Puis ouvre http://localhost:5173.
 > (ces APIs ne renvoient pas toutes les en-têtes CORS). `npm run build` produit un
 > build statique, mais il faudra alors un proxy équivalent devant.
 
+## Version en ligne (GitHub Pages)
+
+Chaque `git push` sur `main` déploie automatiquement le site sur
+https://amaupllx.github.io/kite-spots/ (workflow `.github/workflows/deploy.yml`).
+
+GitHub Pages ne sert que des fichiers statiques, sans le relais de `npm run dev` :
+la version en ligne appelle OSRM et Nominatim directement, affiche une **estimation
+saisonnière** de la température de l'eau (Alplakes refuse les appels directs) et
+**n'affiche pas les étoiles Windguru**. En local (`npm run dev`), tout est disponible.
+Le profil et les favoris restent stockés dans le navigateur de chaque visiteur.
+
 ## Sources de données (gratuites, sans clé)
 
 | Donnée | Source |

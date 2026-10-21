@@ -272,3 +272,4 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 .wg-cell { letter-spacing: 1px; }
 .wg-on { color: #1c64f2; }
 .wg-off { color: var(--border); }
+.static-note { margin: 0 0 6px; padding: 8px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--text); }

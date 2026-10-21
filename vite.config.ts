@@ -5,7 +5,10 @@ const UA = 'kite-spots-ch/0.1 (local dev app)'
 
 // Les APIs de routage, géocodage et température des lacs ne renvoient pas toutes
 // les en-têtes CORS : on passe par le proxy du serveur de dev.
-export default defineConfig({
+export default defineConfig(({ command, isPreview }) => ({
+  // Le build est publié sur GitHub Pages sous https://amaupllx.github.io/kite-spots/
+  // (même chemin pour `vite preview`, qui sert ce build).
+  base: command === 'build' || isPreview ? '/kite-spots/' : '/',
   plugins: [react()],
   server: {
     port: 5173,
@@ -35,4 +38,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

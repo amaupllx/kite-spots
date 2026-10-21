@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { SPOTS } from './data/spots'
 import { useI18n } from './i18n'
+import { HAS_PROXY } from './config'
 import { haversineKm } from './lib/geo'
 import { bestSession, rateDay } from './lib/rating'
 import { DEFAULT_PROFILE, useLocalList, useLocalStorage } from './lib/storage'
@@ -352,7 +353,10 @@ export default function App() {
               </button>
             )}
 
-            <footer className="foot muted small">{t('footer')}</footer>
+            <footer className="foot muted small">
+              {!HAS_PROXY && <p className="static-note">{t('footer.static')}</p>}
+              {t('footer')}
+            </footer>
           </section>
 
           <aside className="map-col">
