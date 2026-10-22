@@ -369,3 +369,29 @@ button, a, input, select, label { touch-action: manipulation; }
 @media (max-width: 600px) {
   .fav-list { grid-template-columns: minmax(0, 1fr); max-height: none; }
 }
+
+/* ---------- Mise en page figée sur téléphone ---------- */
+/* Rien ne doit élargir la page : pas de défilement horizontal ni de dézoom automatique. */
+html { overflow-x: hidden; touch-action: pan-x pan-y; }
+body { overflow-x: clip; overscroll-behavior-x: none; width: 100%; }
+#root { max-width: 100vw; }
+img, svg, video, canvas { max-width: 100%; }
+.leaflet-container img, .leaflet-container svg { max-width: none; }
+.leaflet-container { touch-action: none; }
+.card, .list-col, .spot-main, .spot-body, .transit, .trip { min-width: 0; }
+.spot-title h3, .notes, .summary, .leg-detail, .current-address, .results button { overflow-wrap: anywhere; }
+
+@media (max-width: 600px) {
+  .topbar { gap: 8px; }
+  .brand { min-width: 0; gap: 6px; }
+  .brand h1 { overflow: hidden; text-overflow: ellipsis; }
+  .brand > div { min-width: 0; }
+  .top-actions { flex: 0 0 auto; }
+  .topbar .tabs { padding: 3px; }
+  .topbar .tabs button { padding: 6px 10px; max-width: 34vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lang button { padding: 6px 7px; }
+}
+/* iPhone étroit : on garde le logo seul pour laisser la place aux onglets. */
+@media (max-width: 420px) {
+  .brand h1 { display: none; }
+}
