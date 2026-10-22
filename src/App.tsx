@@ -4,11 +4,11 @@ import { useI18n } from './i18n'
 import { HAS_PROXY } from './config'
 import { useMediaQuery } from './lib/useMediaQuery'
 import { haversineKm } from './lib/geo'
-import { bestSession, rateDay } from './lib/rating'
+import { ALL_CRITERIA, CRITERIA, bestSession, rateDay } from './lib/rating'
 import { DEFAULT_PROFILE, useLocalList, useLocalStorage } from './lib/storage'
 import { fetchTravelTimes } from './services/routing'
 import { fetchForecasts } from './services/weather'
-import type { DayRating, Profile, Spot, SpotForecast, Travel } from './types'
+import type { Criteria, DayRating, Profile, Spot, SpotForecast, Travel } from './types'
 import { ProfilePage } from './components/ProfilePage'
 import { SpotCard } from './components/SpotCard'
 import { SpotMap } from './components/SpotMap'
@@ -29,6 +29,8 @@ export default function App() {
   const { t, lang, setLang, locale } = useI18n()
   const [profile, setProfile] = useLocalStorage<Profile>('kite.profile', DEFAULT_PROFILE)
   const [favorites, setFavorites] = useLocalList('kite.favorites')
+  const [criteria, setCriteria] = useLocalStorage<Criteria>('kite.criteria', ALL_CRITERIA)
+  const [display, setDisplay] = useLocalStorage('kite.display', { showImpact: false })
   const [tab, setTab] = useState<Tab>(profile.address ? 'spots' : 'profil')
 
   const [forecasts, setForecasts] = useState<SpotForecast[] | null>(null)
@@ -90,8 +92,8 @@ export default function App() {
   const dayRows: Row[] = useMemo(() => {
     if (!forecasts || sel.kind !== 'day') return []
     const fc = new Map(forecasts.map((f) => [f.spotId, f]))
-    return reachable.map((r) => ({ ...r, rating: rateDay(r.spot, profile, fc.get(r.spot.id)!.days[sel.idx]) }))
-  }, [forecasts, sel, reachable, profile])
+    return reachable.map((r) => ({ ...r, rating: rateDay(r.spot, profile, fc.get(r.spot.id)!.days[sel.idx], criteria) }))
+  }, [forecasts, sel, reachable, profile, criteria])
 
   // Mode semaine / période : meilleure session de 3 h par spot et par jour, tous spots confondus.
   const sessions: Row[] = useMemo(() => {
@@ -101,12 +103,12 @@ export default function App() {
     for (const r of reachable) {
       const f = fc.get(r.spot.id)!
       for (let i = sel.from; i <= sel.to; i++) {
-        const s = bestSession(r.spot, profile, f.days[i])
+        const s = bestSession(r.spot, profile, f.days[i], criteria)
         if (s) out.push({ ...r, rating: s })
       }
     }
     return out.sort((a, b) => b.rating.score - a.rating.score || byTravel(a, b))
-  }, [forecasts, sel, reachable, profile])
+  }, [forecasts, sel, reachable, profile, criteria])
 
   const isRange = sel.kind === 'range'
   const visible: Row[] = isRange
@@ -120,6 +122,8 @@ export default function App() {
         return { spot: r.spot, score: best?.rating.score ?? 0, rideable: !!best }
       })
     : dayRows.map((r) => ({ spot: r.spot, score: r.rating.score, rideable: !!r.rating.window }))
+
+  const activeCriteria = CRITERIA.filter((c) => criteria[c]).length
 
   const toggleFav = (id: string) => setFavorites((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]))
   const rowKey = (r: Row) => (isRange ? `${r.spot.id}|${r.rating.date}` : r.spot.id)
@@ -287,6 +291,7 @@ export default function App() {
                   {radiusKm ? `${radiusKm} km · ` : ''}
                   {profile.maxTravelMin} min · {t(`mode.${profile.transport}`)}
                   {favOnly ? ` · ♥` : ''}
+                  {activeCriteria < CRITERIA.length ? ` · ${t('scoring.short', { n: activeCriteria, total: CRITERIA.length })}` : ''}
                 </span>
                 <span className="chevron" aria-hidden>{filtersOpen ? '▴' : '▾'}</span>
               </button>
@@ -323,6 +328,22 @@ export default function App() {
                   <label className="check"><input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} /> {t('filters.showAll')}</label>
                 )}
               </div>
+              <fieldset className="scoring">
+                <legend>{t('scoring.title')}</legend>
+                <div className="criteria">
+                  {CRITERIA.map((c) => (
+                    <label key={c} className={`chip ${criteria[c] ? 'on' : ''}`} title={t(`crit.${c}.hint`)}>
+                      <input type="checkbox" checked={criteria[c]} onChange={(e) => setCriteria({ ...criteria, [c]: e.target.checked })} />
+                      {t(`crit.${c}`)}
+                    </label>
+                  ))}
+                </div>
+                <p className="muted small">{t('scoring.always')}</p>
+                <label className="check">
+                  <input type="checkbox" checked={display.showImpact} onChange={(e) => setDisplay({ ...display, showImpact: e.target.checked })} />{' '}
+                  {t('scoring.showImpact')}
+                </label>
+              </fieldset>
               <div className="profile-recap muted small">
                 {profile.transport === 'transit' && <>{t('filters.carBased')} </>}
                 {profile.weight} kg · {t('filters.kites')} {profile.kites.length ? profile.kites.join(' / ') + ' m²' : t('filters.none')}
@@ -380,6 +401,7 @@ export default function App() {
                     expanded={expanded === key}
                     onToggle={() => setExpanded((e) => (e === key ? null : key))}
                     highlighted={highlight === key}
+                    showImpact={display.showImpact}
                   />
                 </div>
               )

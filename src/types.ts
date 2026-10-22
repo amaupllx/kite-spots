@@ -84,6 +84,13 @@ export interface KitePick {
   fit: KiteFit
 }
 
+/** Critères de notation activables depuis la page des spots. */
+export type Criterion = 'kite' | 'wind' | 'gust' | 'dir' | 'rain' | 'temp' | 'level'
+export type Criteria = Record<Criterion, boolean>
+
+/** Effet d'un critère sur la note d'une heure : points ajoutés/retirés, ou heure rendue non navigable. */
+export type Impact = number | 'block'
+
 export type Warning = 'dir' | 'tooStrong' | 'storm' | 'veryGusty' | 'gusty' | 'hardSpot'
 
 export interface HourRating {
@@ -93,6 +100,7 @@ export interface HourRating {
   kite: KitePick
   rideable: boolean
   warnings: Warning[]
+  impacts: Partial<Record<Criterion, Impact>>
 }
 
 export interface DayRating {

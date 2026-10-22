@@ -24,6 +24,8 @@ interface Props {
   expanded: boolean
   onToggle: () => void
   highlighted: boolean
+  /** Affiche l'effet de chaque critère sur la note dans le tableau horaire. */
+  showImpact: boolean
 }
 
 export function SpotCard(p: Props) {
@@ -125,7 +127,7 @@ export function SpotCard(p: Props) {
           {p.transport === 'transit' && (
             <TransitBlock home={p.home} spot={spot} date={rating.date} startHour={rating.window?.start ?? null} />
           )}
-          <HourlyTable rating={rating} wg={wg.fc} />
+          <HourlyTable rating={rating} wg={wg.fc} showImpact={p.showImpact} />
           <div className="links">
             <a href={`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lon}`} target="_blank" rel="noreferrer">{t('link.route')}</a>
             <a href={`https://www.windy.com/${spot.lat}/${spot.lon}?wind,${spot.lat},${spot.lon},11`} target="_blank" rel="noreferrer">Windy ↗</a>

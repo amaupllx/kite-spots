@@ -1,4 +1,4 @@
-import type { Board, DayForecast, DayRating, HourForecast, HourRating, KitePick, Level, Profile, Spot, Warning } from '../types'
+import type { Board, Criteria, Criterion, DayForecast, DayRating, HourForecast, HourRating, KitePick, Level, Profile, Spot, Warning } from '../types'
 import { angleToRange } from './geo'
 
 // Coefficient de la règle empirique : taille (m²) ≈ poids (kg) × k / vent (nœuds).
@@ -30,22 +30,38 @@ export function pickKite(profile: Profile, h: Pick<HourForecast, 'wind' | 'gust'
   return { ideal, owned: fit === 'aucune' ? null : best, fit }
 }
 
-export function rateHour(spot: Spot, profile: Profile, h: HourForecast): HourRating {
+export const CRITERIA: Criterion[] = ['kite', 'wind', 'gust', 'dir', 'rain', 'temp', 'level']
+export const ALL_CRITERIA: Criteria = { kite: true, wind: true, gust: true, dir: true, rain: true, temp: true, level: true }
+
+/**
+ * Note d'une heure. Les critères désactivés n'influencent ni la note ni la navigabilité ;
+ * le vent minimum et l'orage s'appliquent toujours.
+ */
+export function rateHour(spot: Spot, profile: Profile, h: HourForecast, criteria: Criteria = ALL_CRITERIA): HourRating {
   const warnings: Warning[] = []
+  const impacts: HourRating['impacts'] = {}
   const kite = pickKite(profile, h)
 
   const dist = Math.min(...spot.directions.map((r) => angleToRange(h.dir, r)))
   const dirOk: HourRating['dirOk'] = dist === 0 ? 'bon' : dist <= 25 ? 'limite' : 'mauvais'
 
   let rideable = true
-  if (h.wind < MIN_WIND[profile.board]) rideable = false
-  if (kite.fit === 'aucune') rideable = false
-  if (dirOk === 'mauvais') {
+  if (h.wind < MIN_WIND[profile.board]) {
     rideable = false
+    impacts.wind = 'block'
+  }
+  if (criteria.kite && kite.fit === 'aucune') {
+    rideable = false
+    impacts.kite = 'block'
+  }
+  if (criteria.dir && dirOk === 'mauvais') {
+    rideable = false
+    impacts.dir = 'block'
     warnings.push('dir')
   }
-  if (h.gust > MAX_WIND[profile.level] + 5 || h.wind > MAX_WIND[profile.level]) {
+  if (criteria.wind && (h.gust > MAX_WIND[profile.level] + 5 || h.wind > MAX_WIND[profile.level])) {
     rideable = false
+    impacts.wind = 'block'
     warnings.push('tooStrong')
   }
   if (STORM_CODES.has(h.code)) {
@@ -55,34 +71,42 @@ export function rateHour(spot: Spot, profile: Profile, h: HourForecast): HourRat
 
   let score = 0
   if (rideable) {
-    score = kite.fit === 'ideal' ? 4 : 2.5
-    const gf = h.gust / Math.max(h.wind, 1)
-    if (gf <= 1.25) score += 1
-    else if (gf <= 1.4) score += 0.5
-    else if (gf > 1.8) {
-      score -= 2
-      warnings.push('veryGusty')
-    } else if (gf > 1.6) {
-      score -= 1
-      warnings.push('gusty')
+    // Base 4 (aile idéale) ; les impacts sont exprimés par rapport à cette base.
+    score = 4
+    const add = (c: Criterion, x: number) => {
+      score += x
+      impacts[c] = x
     }
-    if (dirOk === 'limite') score *= 0.65
-    if (h.rainProb >= 70) score -= 1
-    else if (h.rainProb >= 40) score -= 0.5
-    if (h.temp < 5) score -= 0.5
-    if (LEVEL_RANK[spot.level] > LEVEL_RANK[profile.level]) {
-      score -= 1
-      warnings.push('hardSpot')
+    if (criteria.kite) add('kite', kite.fit === 'ideal' ? 0 : -1.5)
+    if (criteria.gust) {
+      const gf = h.gust / Math.max(h.wind, 1)
+      if (gf <= 1.25) add('gust', 1)
+      else if (gf <= 1.4) add('gust', 0.5)
+      else if (gf > 1.8) {
+        add('gust', -2)
+        warnings.push('veryGusty')
+      } else if (gf > 1.6) {
+        add('gust', -1)
+        warnings.push('gusty')
+      } else add('gust', 0)
+    }
+    if (criteria.dir) add('dir', dirOk === 'limite' ? score * -0.35 : 0)
+    if (criteria.rain) add('rain', h.rainProb >= 70 ? -1 : h.rainProb >= 40 ? -0.5 : 0)
+    if (criteria.temp) add('temp', h.temp < 5 ? -0.5 : 0)
+    if (criteria.level) {
+      const hard = LEVEL_RANK[spot.level] > LEVEL_RANK[profile.level]
+      add('level', hard ? -1 : 0)
+      if (hard) warnings.push('hardSpot')
     }
   }
-  return { hour: h, score: clamp(score, 0, 5), dirOk, kite, rideable, warnings }
+  return { hour: h, score: clamp(score, 0, 5), dirOk, kite, rideable, warnings, impacts }
 }
 
 const isGood = (r: HourRating) => r.rideable && r.score >= MIN_HOUR_SCORE
 
 /** Note journalière : meilleure suite d'heures navigables (somme des notes maximale). */
-export function rateDay(spot: Spot, profile: Profile, day: DayForecast): DayRating {
-  const hours = day.hours.map((h) => rateHour(spot, profile, h))
+export function rateDay(spot: Spot, profile: Profile, day: DayForecast, criteria: Criteria = ALL_CRITERIA): DayRating {
+  const hours = day.hours.map((h) => rateHour(spot, profile, h, criteria))
 
   let best: { start: number; end: number; sum: number } | null = null
   let i = 0
@@ -120,8 +144,8 @@ export function rateDay(spot: Spot, profile: Profile, day: DayForecast): DayRati
  * Meilleure session de `len` heures consécutives d'une journée (toutes navigables).
  * Renvoie null si la journée n'en contient aucune.
  */
-export function bestSession(spot: Spot, profile: Profile, day: DayForecast, len = 3): DayRating | null {
-  const hours = day.hours.map((h) => rateHour(spot, profile, h))
+export function bestSession(spot: Spot, profile: Profile, day: DayForecast, criteria: Criteria = ALL_CRITERIA, len = 3): DayRating | null {
+  const hours = day.hours.map((h) => rateHour(spot, profile, h, criteria))
   let best: { start: number; sum: number } | null = null
   for (let i = 0; i + len <= hours.length; i++) {
     const slice = hours.slice(i, i + len)
