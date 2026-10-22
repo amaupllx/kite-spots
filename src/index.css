@@ -93,6 +93,14 @@ input, select { font: inherit; color: var(--text); }
 .filters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
 .toggles { display: flex; flex-wrap: wrap; gap: 6px 18px; grid-column: 1 / -1; }
 .profile-recap { grid-column: 1 / -1; }
+.scoring { grid-column: 1 / -1; border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.scoring legend { padding: 0; margin-bottom: 6px; font-size: 0.9rem; color: var(--muted); }
+.scoring p { margin: 0; }
+.criteria { display: flex; flex-wrap: wrap; gap: 6px; }
+.criteria .chip { position: relative; cursor: pointer; }
+.criteria .chip:not(.on) { color: var(--muted); text-decoration: line-through; }
+.criteria .chip input { position: absolute; opacity: 0; pointer-events: none; }
+.criteria .chip:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (max-width: 600px) { .filters { grid-template-columns: 1fr; } }
 .field { display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }
 .field > span { color: var(--muted); }
@@ -191,6 +199,11 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 .rain-high { color: #2b6cb0; font-weight: 700; }
 .score-dot { display: inline-block; min-width: 34px; text-align: center; border-radius: 6px; padding: 2px 6px; font-weight: 700; font-size: 0.8rem; }
 .legend { margin: 8px 0 0; line-height: 1.8; }
+.impact { display: inline-block; margin-left: 4px; font-size: 0.7rem; font-weight: 700; vertical-align: middle; }
+.impact.pos { color: var(--good); }
+.impact.neg { color: var(--bad); }
+.impact.zero { color: var(--muted); font-weight: 500; }
+.impact.block { color: var(--bad); }
 
 /* ---------- Profile ---------- */
 .profile { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
