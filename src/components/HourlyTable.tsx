@@ -15,13 +15,13 @@ export function HourlyTable({ rating, wg, showImpact = false }: { rating: DayRat
         <thead>
           <tr>
             <th>{t('table.hour')}</th>
+            <th className="t-score">{t('table.score')}</th>
             <th>{t('table.wind')}</th>
             <th>{t('table.gust')}</th>
             <th>{t('table.dir')}</th>
             <th>{t('table.kite')}</th>
             <th>{t('table.air')}</th>
             <th>{t('table.rain')}</th>
-            <th>{t('table.score')}</th>
             {wg && <th title={wg.modelName}>{t('wg.col')}</th>}
           </tr>
         </thead>
@@ -33,6 +33,12 @@ export function HourlyTable({ rating, wg, showImpact = false }: { rating: DayRat
             return (
               <tr key={r.hour.time} className={inWin ? 'in-window' : ''} title={title}>
                 <td className="t-hour">{r.hour.hour}h</td>
+                <td className="t-score">
+                  <span className={`score-dot ${scoreClass(r.score)}`}>{r.rideable ? r.score.toFixed(1) : '✕'}</span>
+                  {showImpact && typeof r.impacts.level === 'number' && r.impacts.level !== 0 && (
+                    <span title={t('crit.level')}><ImpactTag value={r.impacts.level} /></span>
+                  )}
+                </td>
                 <td><span className={`wpill ${windClass(r.hour.wind)}`}>{Math.round(r.hour.wind)}</span>{imp('wind')}</td>
                 <td><span className={`wpill ${windClass(r.hour.gust)}`}>{Math.round(r.hour.gust)}</span>{imp('gust')}</td>
                 <td className={`dir-${r.dirOk}`}><WindArrow dir={r.hour.dir} />{imp('dir')}</td>
@@ -48,12 +54,6 @@ export function HourlyTable({ rating, wg, showImpact = false }: { rating: DayRat
                 <td className={r.hour.rainProb >= 50 ? 'rain-high' : ''}>
                   {r.hour.rainProb}%{r.hour.rain > 0.1 ? <span className="muted small"> {r.hour.rain.toFixed(1)}mm</span> : null}
                   {imp('rain')}
-                </td>
-                <td>
-                  <span className={`score-dot ${scoreClass(r.score)}`}>{r.rideable ? r.score.toFixed(1) : '✕'}</span>
-                  {showImpact && typeof r.impacts.level === 'number' && r.impacts.level !== 0 && (
-                    <span title={t('crit.level')}><ImpactTag value={r.impacts.level} /></span>
-                  )}
                 </td>
                 {wg && <WgCell stars={wgAt(wg, rating.date, r.hour.hour)?.stars ?? null} />}
               </tr>
