@@ -183,6 +183,15 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 .hourly td { padding: 5px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
 .hourly tr.in-window td { background: var(--accent-soft); }
 .t-hour { font-weight: 700; }
+/* Colonne des notes : détachée des données météo par un fond et des séparateurs
+   (ombres internes plutôt que bordures, pour suivre la cellule quand elle est figée). */
+.hourly .t-score {
+  text-align: center; background: var(--surface-2);
+  box-shadow: inset 1px 0 0 var(--border), inset -2px 0 0 var(--border);
+}
+.hourly th.t-score { color: var(--text); }
+.hourly tr.in-window td.t-score { background: color-mix(in srgb, var(--accent-soft) 85%, var(--accent)); }
+.hourly td.t-score + td, .hourly th.t-score + th { padding-left: 12px; }
 .wpill { display: inline-block; min-width: 32px; text-align: center; border-radius: 6px; padding: 2px 6px; font-weight: 700; }
 .w0 { background: #eef2f6; color: #6b7a8c; }
 .w1 { background: #d3ecfb; color: #1b5d8c; }
@@ -356,6 +365,10 @@ button, a, input, select, label { touch-action: manipulation; }
   .hourly th, .hourly td { padding: 5px; }
   .hourly th:first-child, .hourly td:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
   .hourly tr.in-window td:first-child { background: var(--accent-soft); }
+  /* Heure et note restent visibles pendant le défilement horizontal. */
+  .hourly th:first-child, .hourly td:first-child { width: 58px; min-width: 58px; max-width: 58px; box-sizing: border-box; }
+  .hourly .t-score { position: sticky; left: 58px; z-index: 1; }
+  .hourly td.t-score + td, .hourly th.t-score + th { padding-left: 10px; }
   .wpill { min-width: 26px; padding: 2px 4px; }
   .score-dot { min-width: 30px; }
 
