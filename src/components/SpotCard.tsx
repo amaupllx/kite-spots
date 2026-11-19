@@ -8,7 +8,7 @@ import { TransitBlock } from './TransitBlock'
 import { scoreClass } from '../lib/classes'
 import { HeartButton, Stars, WgStars } from './ui'
 import { useWindguru } from '../lib/useWindguru'
-import { wgAt } from '../services/windguru'
+import { starsFor } from '../services/windguru'
 import { MODEL_INFO } from '../services/weather'
 
 interface Props {
@@ -39,8 +39,8 @@ export function SpotCard(p: Props) {
 
   // Étoiles Windguru moyennes sur la session (ou sur la journée s'il n'y en a pas).
   const wgHours = rating.hours.filter((r) => !rating.window || (r.hour.hour >= rating.window.start && r.hour.hour < rating.window.end))
-  const wgVals = wg.fc ? wgHours.map((r) => wgAt(wg.fc!, rating.date, r.hour.hour)).filter((v) => v !== null) : []
-  const wgAvg = wgVals.length ? wgVals.reduce((a, v) => a + v.stars, 0) / wgVals.length : null
+  const wgVals = wg.limits ? wgHours.map((r) => starsFor(r.hour.wind, wg.limits!)) : []
+  const wgAvg = wgVals.length ? wgVals.reduce((a, v) => a + v, 0) / wgVals.length : null
   const wgRange = rating.window ? `${rating.window.start}h–${rating.window.end}h` : t('fact.daylight').toLowerCase()
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export function SpotCard(p: Props) {
           <div className="spot-sub">
             <Stars score={rating.score} size="sm" />
             {wgAvg !== null && (
-              <WgStars value={wgAvg} title={t('wg.stars', { model: wg.fc!.modelName, avg: wgAvg.toFixed(1), range: wgRange })} />
+              <WgStars value={wgAvg} title={t('wg.stars', { model: mainModels.join(', '), limits: wg.limits!.join(' / '), avg: wgAvg.toFixed(1), range: wgRange })} />
             )}
             <span className={rideable ? 'summary ok' : 'summary'}>{summary}</span>
             {wgHours.length > 0 && (
@@ -141,7 +141,7 @@ export function SpotCard(p: Props) {
           {p.transport === 'transit' && (
             <TransitBlock home={p.home} spot={spot} date={rating.date} startHour={rating.window?.start ?? null} />
           )}
-          <HourlyTable rating={rating} wg={wg.fc} showImpact={p.showImpact} />
+          <HourlyTable rating={rating} wgLimits={wg.limits} showImpact={p.showImpact} />
           <div className="links">
             <a href={`https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lon}`} target="_blank" rel="noreferrer">{t('link.route')}</a>
             <a href={`https://www.windy.com/${spot.lat}/${spot.lon}?wind,${spot.lat},${spot.lon},11`} target="_blank" rel="noreferrer">Windy ↗</a>

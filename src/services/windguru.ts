@@ -1,27 +1,14 @@
 import type { Spot } from '../types'
 
-// Étoiles Windguru via l'API interne du site (non documentée, usage personnel en local).
-// La réponse ne contient pas les étoiles : le site les calcule à partir du vent moyen et
-// des seuils renvoyés par « forecast_spot » (limit1 / limit2 / limit3, en nœuds).
-// On utilise le modèle GFS 13 km (id 3), disponible gratuitement et sur 7 jours et plus.
+// Étoiles façon Windguru : seuils du spot (limit1 / limit2 / limit3, en nœuds) lus via l'API
+// interne du site (non documentée, usage personnel en local), appliqués au vent moyen de notre
+// cascade de modèles (ICON-CH1 → ICON-CH2 → ECMWF, voir weather.ts) au lieu de GFS.
 
-const MODEL = 3
-const CACHE_KEY = 'kite.windguru.v1'
-const CACHE_MS = 3 * 3600 * 1000
+const CACHE_KEY = 'kite.windguru.v2'
+const CACHE_MS = 24 * 3600 * 1000 // les seuils d'un spot ne changent quasiment jamais
 const OVERRIDES_KEY = 'kite.windguruIds'
 
-export interface WgHour {
-  wind: number // nœuds
-  gust: number
-  stars: number // 0..3
-}
-
-export interface WgForecast {
-  modelName: string
-  limits: [number, number, number]
-  /** Clé « YYYY-MM-DDTHH » en heure suisse. */
-  hours: Record<string, WgHour>
-}
+export type WgLimits = [number, number, number]
 
 /** Identifiants Windguru personnalisés éventuellement enregistrés par une version précédente. */
 export function readWindguruOverrides(): Record<string, number> {
@@ -36,30 +23,16 @@ export function windguruIdOf(spot: Spot): number | null {
   return readWindguruOverrides()[spot.id] ?? spot.windguru ?? null
 }
 
-export function starsFor(wind: number, [l1, l2, l3]: [number, number, number]) {
+export function starsFor(wind: number, [l1, l2, l3]: WgLimits): number {
   return wind >= l3 ? 3 : wind >= l2 ? 2 : wind >= l1 ? 1 : 0
 }
 
 interface Tab {
   id_model: number
-  id_model_arr: { id_model: number; initstr: string; rundef: string; cachefix: string }[]
   options: { limit1: number; limit2: number; limit3: number }
 }
 
-interface Fcst {
-  fcst: { initstamp: number; hours: number[]; WINDSPD: number[]; GUST: number[]; model_name: string }
-}
-
-const localKey = new Intl.DateTimeFormat('sv-SE', {
-  timeZone: 'Europe/Zurich',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  hourCycle: 'h23',
-})
-
-function readCache(): Record<string, { at: number; data: WgForecast }> {
+function readCache(): Record<string, { at: number; data: WgLimits }> {
   try {
     return JSON.parse(localStorage.getItem(CACHE_KEY) ?? '{}')
   } catch {
@@ -83,36 +56,18 @@ async function api<T>(params: Record<string, string>): Promise<T> {
   return json
 }
 
-async function load(id: number): Promise<WgForecast> {
+async function load(id: number): Promise<WgLimits> {
   const spot = await api<{ tabs: Tab[] }>({ q: 'forecast_spot', id_spot: String(id) })
-  const tab = spot.tabs.find((t) => t.id_model === MODEL)
-  const run = tab?.id_model_arr[0]
-  if (!tab || !run) throw new Error('Windguru : modèle GFS indisponible pour ce spot')
-  const limits: [number, number, number] = [tab.options.limit1, tab.options.limit2, tab.options.limit3]
-
-  const data = await api<Fcst>({
-    q: 'forecast',
-    id_model: String(MODEL),
-    rundef: run.rundef,
-    initstr: run.initstr,
-    id_spot: String(id),
-    WGCACHEABLE: '21600',
-    cachefix: run.cachefix,
-  })
-  const f = data.fcst
-  const hours: Record<string, WgHour> = {}
-  f.hours.forEach((h, i) => {
-    const wind = f.WINDSPD[i]
-    if (wind == null) return
-    const key = localKey.format(new Date((f.initstamp + h * 3600) * 1000)).replace(' ', 'T')
-    hours[key] = { wind, gust: f.GUST[i], stars: starsFor(wind, limits) }
-  })
-  return { modelName: f.model_name, limits, hours }
+  // Seuils de l'onglet GFS (celui utilisé jusqu'ici), sinon du premier onglet qui en a.
+  const o = (spot.tabs.find((t) => t.id_model === 3) ?? spot.tabs.find((t) => t.options?.limit1 != null))?.options
+  if (!o) throw new Error('Windguru : seuils indisponibles pour ce spot')
+  return [o.limit1, o.limit2, o.limit3]
 }
 
-const inflight = new Map<number, Promise<WgForecast>>()
+const inflight = new Map<number, Promise<WgLimits>>()
 
-export function getWindguru(id: number): Promise<WgForecast> {
+/** Seuils d'étoiles du spot Windguru, mis en cache 24 h. */
+export function getWindguruLimits(id: number): Promise<WgLimits> {
   const hit = readCache()[id]
   if (hit && Date.now() - hit.at < CACHE_MS) return Promise.resolve(hit.data)
   const running = inflight.get(id)
@@ -133,18 +88,4 @@ export function getWindguru(id: number): Promise<WgForecast> {
   inflight.set(id, p)
   p.finally(() => inflight.delete(id)).catch(() => undefined)
   return p
-}
-
-/**
- * Étoiles d'une heure locale « YYYY-MM-DDTHH ». Au-delà de 78 h, GFS est au pas de 3 h :
- * on prend alors l'échéance voisine (± 1 h).
- */
-export function wgAt(fc: WgForecast, date: string, hour: number): WgHour | null {
-  for (const d of [0, -1, 1]) {
-    const h = hour + d
-    if (h < 0 || h > 23) continue
-    const v = fc.hours[`${date}T${h.toString().padStart(2, '0')}`]
-    if (v) return v
-  }
-  return null
 }

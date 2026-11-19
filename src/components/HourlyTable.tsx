@@ -1,12 +1,12 @@
 import type { DayRating, HourForecast, Impact } from '../types'
-import { wgAt, type WgForecast } from '../services/windguru'
+import { starsFor, type WgLimits } from '../services/windguru'
 import { useI18n } from '../i18n'
 import { dirLabel } from '../lib/geo'
 import { scoreClass, windClass } from '../lib/classes'
 import { WindArrow } from './ui'
 import { MODEL_INFO } from '../services/weather'
 
-export function HourlyTable({ rating, wg, showImpact = false }: { rating: DayRating; wg?: WgForecast | null; showImpact?: boolean }) {
+export function HourlyTable({ rating, wgLimits, showImpact = false }: { rating: DayRating; wgLimits?: WgLimits | null; showImpact?: boolean }) {
   const { t, dir } = useI18n()
   if (rating.hours.length === 0) return <p className="muted">{t('table.none')}</p>
   return (
@@ -24,7 +24,7 @@ export function HourlyTable({ rating, wg, showImpact = false }: { rating: DayRat
             <th>{t('table.kite')}</th>
             <th>{t('table.air')}</th>
             <th>{t('table.rain')}</th>
-            {wg && <th title={wg.modelName}>{t('wg.col')}</th>}
+            {wgLimits && <th title={t('wg.colTip', { limits: wgLimits.join(' / ') })}>{t('wg.col')}</th>}
           </tr>
         </thead>
         <tbody>
@@ -58,7 +58,7 @@ export function HourlyTable({ rating, wg, showImpact = false }: { rating: DayRat
                   {r.hour.rainProb}%{r.hour.rain > 0.1 ? <span className="muted small"> {r.hour.rain.toFixed(1)}mm</span> : null}
                   {imp('rain')}
                 </td>
-                {wg && <WgCell stars={wgAt(wg, rating.date, r.hour.hour)?.stars ?? null} />}
+                {wgLimits && <WgCell stars={starsFor(r.hour.wind, wgLimits)} />}
               </tr>
             )
           })}
@@ -95,8 +95,7 @@ function ConfCell({ h }: { h: HourForecast }) {
   )
 }
 
-function WgCell({ stars }: { stars: number | null }) {
-  if (stars === null) return <td className="muted">–</td>
+function WgCell({ stars }: { stars: number }) {
   return (
     <td className="wg-cell" title={`${stars} / 3`}>
       <span className="wg-on">{'★'.repeat(stars)}</span>

@@ -27,10 +27,11 @@ quels spots de kite sont praticables pour chaque jour des 7 prochains jours.
   sur la carte du spot. Au-delà de 5 jours, un seul modèle : pas de pastille.
 - **Température de l'eau** : simulations Alplakes (Eawag) pour les lacs couverts,
   sinon estimation saisonnière.
-- **Étoiles Windguru** (0 à 3, modèle GFS 13 km) à côté de la note : badge moyen sur la
-  session et colonne WG dans le tableau horaire. Récupérées via l'API interne de Windguru
-  (non documentée, usage personnel en local), avec cache de 3 h. Identifiants dans
-  `src/data/spots.ts` (`windguru`).
+- **Étoiles Windguru** (0 à 3) à côté de la note : badge moyen sur la session et colonne WG
+  dans le tableau horaire. Les **seuils d'étoiles du spot** (limit1/2/3) viennent de l'API
+  interne de Windguru (non documentée, usage personnel en local, cache 24 h), mais elles sont
+  calculées sur le **vent de notre cascade de modèles** (ICON-CH1 → ICON-CH2 → ECMWF) et non
+  plus sur GFS 13 km. Identifiants dans `src/data/spots.ts` (`windguru`).
 - **Spots favoris** et carte interactive (Leaflet / OpenStreetMap) : le spot sélectionné passe
   en rouge et l'itinéraire routier depuis ton adresse est tracé.
 
@@ -69,7 +70,7 @@ Le profil et les favoris restent stockés dans le navigateur de chaque visiteur.
 | Température de l'eau | [Alplakes](https://www.alplakes.eawag.ch) – Eawag |
 | Temps de trajet | [OSRM](https://project-osrm.org) (serveur de démo public) |
 | Horaires transports publics | [transport.opendata.ch](https://transport.opendata.ch) |
-| Étoiles Windguru | windguru.net (API interne, usage personnel) |
+| Seuils des étoiles Windguru | windguru.net (API interne, usage personnel) |
 | Géocodage d'adresse | [Nominatim](https://nominatim.org) – OpenStreetMap |
 
 ## Structure
