@@ -21,6 +21,10 @@ quels spots de kite sont praticables pour chaque jour des 7 prochains jours.
   k selon la planche), avec indication idéale / surtoilé / sous-toilé.
 - **Détail horaire (heures de jour uniquement)** : vent moyen, rafales, direction, aile,
   température de l'air, probabilité et cumul de pluie.
+- **Indicateur de fiabilité** : chaque heure compare le modèle principal à un second avis
+  (AROME jusqu'à ~48 h, puis ECMWF). Pastille verte / orange / rouge selon l'écart de vent
+  (≤ 3 nds ou 20 %) et de direction (≤ 30°), et résumé « Modèles d'accord / en désaccord »
+  sur la carte du spot. Au-delà de 5 jours, un seul modèle : pas de pastille.
 - **Température de l'eau** : simulations Alplakes (Eawag) pour les lacs couverts,
   sinon estimation saisonnière.
 - **Étoiles Windguru** (0 à 3, modèle GFS 13 km) à côté de la note : badge moyen sur la
@@ -60,7 +64,8 @@ Le profil et les favoris restent stockés dans le navigateur de chaque visiteur.
 
 | Donnée | Source |
 | --- | --- |
-| Vent, rafales, température, pluie, lever/coucher du soleil | [Open-Meteo](https://open-meteo.com) (modèles MétéoSuisse ICON-CH en Suisse) |
+| Vent, rafales | [Open-Meteo](https://open-meteo.com) : cascade MétéoSuisse ICON-CH1 (1 km, ≈ 0–33 h) → ICON-CH2 (2 km, ≈ 5 j) → ECMWF IFS (9 km) ; second avis Météo-France AROME HD (1,3 km, ≈ 48 h) puis ECMWF |
+| Température, pluie, lever/coucher du soleil | [Open-Meteo](https://open-meteo.com) (choix automatique du meilleur modèle) |
 | Température de l'eau | [Alplakes](https://www.alplakes.eawag.ch) – Eawag |
 | Temps de trajet | [OSRM](https://project-osrm.org) (serveur de démo public) |
 | Horaires transports publics | [transport.opendata.ch](https://transport.opendata.ch) |
