@@ -1,11 +1,12 @@
-import type { DayRating, Impact } from '../types'
-import { wgAt, type WgForecast } from '../services/windguru'
+import type { DayRating, HourForecast, Impact } from '../types'
+import { starsFor, type WgLimits } from '../services/windguru'
 import { useI18n } from '../i18n'
 import { dirLabel } from '../lib/geo'
 import { scoreClass, windClass } from '../lib/classes'
 import { WindArrow } from './ui'
+import { MODEL_INFO } from '../services/weather'
 
-export function HourlyTable({ rating, wg, showImpact = false }: { rating: DayRating; wg?: WgForecast | null; showImpact?: boolean }) {
+export function HourlyTable({ rating, wgLimits, showImpact = false }: { rating: DayRating; wgLimits?: WgLimits | null; showImpact?: boolean }) {
   const { t, dir } = useI18n()
   if (rating.hours.length === 0) return <p className="muted">{t('table.none')}</p>
   return (
@@ -19,10 +20,11 @@ export function HourlyTable({ rating, wg, showImpact = false }: { rating: DayRat
             <th>{t('table.wind')}</th>
             <th>{t('table.gust')}</th>
             <th>{t('table.dir')}</th>
+            <th>{t('table.conf')}</th>
             <th>{t('table.kite')}</th>
             <th>{t('table.air')}</th>
             <th>{t('table.rain')}</th>
-            {wg && <th title={wg.modelName}>{t('wg.col')}</th>}
+            {wgLimits && <th title={t('wg.colTip', { limits: wgLimits.join(' / ') })}>{t('wg.col')}</th>}
           </tr>
         </thead>
         <tbody>
@@ -42,6 +44,7 @@ export function HourlyTable({ rating, wg, showImpact = false }: { rating: DayRat
                 <td><span className={`wpill ${windClass(r.hour.wind)}`}>{Math.round(r.hour.wind)}</span>{imp('wind')}</td>
                 <td><span className={`wpill ${windClass(r.hour.gust)}`}>{Math.round(r.hour.gust)}</span>{imp('gust')}</td>
                 <td className={`dir-${r.dirOk}`}><WindArrow dir={r.hour.dir} />{imp('dir')}</td>
+                <ConfCell h={r.hour} />
                 <td>
                   {r.rideable && r.kite.owned ? (
                     <span className={`kite-tag fit-${r.kite.fit}`}>{r.kite.owned} m²</span>
@@ -55,7 +58,7 @@ export function HourlyTable({ rating, wg, showImpact = false }: { rating: DayRat
                   {r.hour.rainProb}%{r.hour.rain > 0.1 ? <span className="muted small"> {r.hour.rain.toFixed(1)}mm</span> : null}
                   {imp('rain')}
                 </td>
-                {wg && <WgCell stars={wgAt(wg, rating.date, r.hour.hour)?.stars ?? null} />}
+                {wgLimits && <WgCell stars={starsFor(r.hour.wind, wgLimits)} />}
               </tr>
             )
           })}
@@ -67,13 +70,32 @@ export function HourlyTable({ rating, wg, showImpact = false }: { rating: DayRat
         <span className="fit-surtoile kite-tag">{t('legend.over')}</span>{' '}
         <span className="fit-soustoile kite-tag">{t('legend.under')}</span> {t('legend.suffix')}
       </p>
+      <p className="legend small muted">{t('conf.legend')}</p>
       {showImpact && <p className="legend small muted">{t('legend.impact')}</p>}
     </>
   )
 }
 
-function WgCell({ stars }: { stars: number | null }) {
-  if (stars === null) return <td className="muted">–</td>
+function ConfCell({ h }: { h: HourForecast }) {
+  const { t, dir } = useI18n()
+  const m = MODEL_INFO[h.model]
+  const detail = h.alt
+    ? t('conf.detail', {
+        main: m.name, res: m.res, wind: Math.round(h.wind), dir: dir(dirLabel(h.dir)),
+        alt: MODEL_INFO[h.alt.model].name, altRes: MODEL_INFO[h.alt.model].res,
+        altWind: Math.round(h.alt.wind), altDir: dir(dirLabel(h.alt.dir)),
+      })
+    : t('conf.only', { main: m.name, res: m.res })
+  const title = `${t(`conf.${h.confidence ?? 'none'}`)}\n${detail}`
+  return (
+    <td className="conf-cell" title={title}>
+      {h.confidence ? <span className={`conf-dot conf-${h.confidence}`} /> : <span className="muted">–</span>}
+      {m.res && <span className="muted small"> {m.res}</span>}
+    </td>
+  )
+}
+
+function WgCell({ stars }: { stars: number }) {
   return (
     <td className="wg-cell" title={`${stars} / 3`}>
       <span className="wg-on">{'★'.repeat(stars)}</span>

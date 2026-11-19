@@ -47,6 +47,19 @@ export interface Spot {
   waterClimate: 'plaine' | 'grand-lac' | 'altitude'
 }
 
+/** Modèles de vent utilisés, du plus fin au plus large ; « auto » = choix automatique d'Open-Meteo (secours). */
+export type WindModel = 'icon_ch1' | 'icon_ch2' | 'arome' | 'ecmwf' | 'auto'
+
+/** Accord entre le modèle principal et le second avis ; null = pas de second modèle à cette échéance. */
+export type Confidence = 'high' | 'medium' | 'low' | null
+
+export interface WindValue {
+  model: WindModel
+  wind: number // nœuds
+  gust: number // nœuds
+  dir: number // degrés
+}
+
 export interface HourForecast {
   time: string // ISO local "2026-10-21T13:00"
   hour: number
@@ -57,6 +70,11 @@ export interface HourForecast {
   rainProb: number // %
   rain: number // mm
   code: number // code météo WMO
+  /** Modèle d'où viennent wind / gust / dir. */
+  model: WindModel
+  /** Second avis (AROME jusqu'à ~48 h, puis ECMWF), pour l'indicateur de confiance. */
+  alt: WindValue | null
+  confidence: Confidence
 }
 
 export interface DayForecast {

@@ -408,3 +408,12 @@ img, svg, video, canvas { max-width: 100%; }
 @media (max-width: 420px) {
   .brand h1 { display: none; }
 }
+
+/* Indicateur de confiance (accord entre modèles) */
+.conf-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; background: var(--muted); }
+.conf-dot.conf-high { background: var(--good); }
+.conf-dot.conf-medium { background: var(--ok); }
+.conf-dot.conf-low { background: var(--bad); }
+.conf-cell .small { font-size: 0.72rem; }
+.conf-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+.conf-chip.conf-low { color: var(--bad); }
